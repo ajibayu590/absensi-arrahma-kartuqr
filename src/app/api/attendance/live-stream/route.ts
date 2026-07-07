@@ -1,7 +1,37 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSseClients } from "@/lib/sse";
+import { getUserFromRequest } from "@/lib/auth-helper";
+import prisma from "@/lib/prisma"; // Import prisma
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const payload = getUserFromRequest(req);
+
+  if (!payload) {
+    return NextResponse.json({ error: "Sesi tidak valid." }, { status: 401 });
+  }
+
+  // Hanya izinkan ADMIN, KEPALA_SEKOLAH, atau GURU untuk mengakses live stream ini
+  if (!["ADMIN", "KEPALA_SEKOLAH", "GURU"].includes(payload.peran)) {
+    return NextResponse.json(
+      { error: "Akses ditolak. Peran Anda tidak diizinkan mengakses live stream." },
+      { status: 403 }
+    );
+  }
+
+  // Jika peran adalah GURU, pastikan dia adalah Guru Piket atau Wali Kelas
+  if (payload.peran === "GURU") {
+    const guru = await prisma.guru.findUnique({
+      where: { idPengguna: payload.userId },
+      select: { isBk: true, kelasWali: { select: { id: true } } }
+    });
+    if (!guru || (!guru.isBk && !guru.kelasWali)) {
+      return NextResponse.json(
+        { error: "Akses ditolak. Hanya Guru BK atau Wali Kelas yang dapat mengakses live stream." },
+        { status: 403 }
+      );
+    }
+  }
+
   let controllerRef: ReadableStreamDefaultController;
 
   const stream = new ReadableStream({

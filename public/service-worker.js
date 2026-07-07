@@ -1,5 +1,6 @@
 
 self.addEventListener('install', function(event) {
+  self.skipWaiting(); // Activate new service worker immediately
   event.waitUntil(
     caches.open('absensi-cache').then(function(cache) {
       return cache.addAll([
@@ -13,10 +14,38 @@ self.addEventListener('install', function(event) {
   );
 });
 
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    clients.claim() // Take control of all pages
+  );
+  console.log('Service Worker activated');
+});
+
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(event.request).then(function(response) {
       return response || fetch(event.request);
     })
+  );
+});
+
+self.addEventListener('push', function(event) {
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'Absensi App Notification';
+  const options = {
+    body: data.body || 'You have a new notification.',
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url || '/')
   );
 });

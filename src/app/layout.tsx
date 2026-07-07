@@ -3,6 +3,13 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
+// Declare a global variable for deferredPrompt
+declare global {
+  interface Window {
+    deferredPrompt: any;
+  }
+}
+
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-plus-jakarta-sans",
@@ -42,10 +49,26 @@ export default function RootLayout({
           `}
         </script>
       </head>
-      <body className="h-full bg-zinc-50 dark:bg-zinc-950 font-sans antialiased text-zinc-900 dark:text-zinc-50">
-        {children}
-        <Toaster position="top-center" reverseOrder={false} />
-      </body>
+        <body className="h-full bg-zinc-50 dark:bg-zinc-950 font-sans antialiased text-zinc-900 dark:text-zinc-50">
+          {children}
+          <Toaster position="top-center" reverseOrder={false} />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.addEventListener('beforeinstallprompt', (e) => {
+                  e.preventDefault();
+                  window.deferredPrompt = e;
+                  console.log('beforeinstallprompt fired');
+                  // Optionally, show a custom install button here
+                });
+
+                window.addEventListener('appinstalled', () => {
+                  console.log('PWA installed successfully!');
+                });
+              `,
+            }}
+          />
+        </body>
     </html>
   );
 }

@@ -852,7 +852,7 @@ export default function StudentPage() {
                     placeholder="Tulis alasan keterlambatan Anda secara lengkap..."
                     value={dispAlasan}
                     onChange={(e) => setDispAlasan(e.target.value)}
-                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-800 dark:text-zinc-100 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                    className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2.5 text-zinc-800 dark:text-zinc-100 text-base focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                   />
                 </div>
 
@@ -864,7 +864,7 @@ export default function StudentPage() {
                     type="file"
                     accept="image/*"
                     onChange={(e) => setDispFoto(e.target.files?.[0] || null)}
-                    className="w-full text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-zinc-100 file:text-zinc-700 dark:file:bg-zinc-800 dark:file:text-zinc-300 hover:file:bg-zinc-200 cursor-pointer"
+                    className="w-full text-base text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-base file:font-bold file:bg-zinc-100 file:text-zinc-700 dark:file:bg-zinc-800 dark:file:text-zinc-300 hover:file:bg-zinc-200 cursor-pointer"
                   />
                 </div>
 
@@ -1036,7 +1036,7 @@ export default function StudentPage() {
                         placeholder="Masukkan Token QR Terenkripsi"
                         value={simulatedToken}
                         onChange={(e) => setSimulatedToken(e.target.value)}
-                        className="w-full text-xs bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono"
+                        className="w-full text-base bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono"
                       />
                       <button
                         onClick={async () => {

@@ -275,5 +275,5 @@ Dokumen ini berisi daftar tugas pengerjaan (*checklist TODO*) yang dibagi ke dal
 | 2026-07-08 | PWA Event & Notification Handling | Penanganan event PWA dan notifikasi. | Menambahkan listener `activate`, `push`, dan `notificationclick` di `public/service-worker.js`. | Selesai |
 | 2026-07-08 | Scanner iOS Compatibility | Perbaikan scanner QR untuk kompatibilitas iOS. | Mengubah konfigurasi `html5-qrcode` (`fps`, `qrbox`, `aspectRatio`, `videoConstraints`), menambahkan `playsInline` ke elemen `video`, dan menerapkan `isProcessingScan` flag. | Selesai |
 | 2026-07-08 | API Scan - Lat/Lon Validation | Menambahkan validasi tipe yang lebih kuat untuk `latitude` dan `longitude` di API scan absensi. | Validasi eksplisit untuk memastikan `latitude` dan `longitude` adalah angka yang valid sebelum digunakan. | Selesai |
-| 2026-07-08 | PWA iOS UX Enhancements | Optimalisasi pengalaman pengguna PWA di iOS. | Edukasi "Add to Home Screen", verifikasi `cleanupScanner()`, dan memastikan `font-size` elemen input minimal 16px. | Selesai |
+| 2026-07-08 | Timezone Issue Fix | Perbaikan inkonsistensi zona waktu pada kalkulasi tanggal dan waktu di server-side API. | Menggunakan `Intl.DateTimeFormat` dengan `timeZone: "Asia/Jakarta"` secara eksplisit di `/api/attendance/scan/route.ts` dan `/api/dashboard/summary/route.ts` untuk tanggal dan waktu WIB. | Selesai |
 

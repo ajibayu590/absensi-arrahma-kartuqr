@@ -56,10 +56,15 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Tentukan Tanggal Hari Ini (Zona Waktu WIB / UTC+7)
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const dateStr = wibDate.toISOString().split("T")[0];
-    const cleanToday = new Date(dateStr);
+    const now = new Date();
+    const wibDateFormatter = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    });
+    const wibDateString = wibDateFormatter.format(now).replace(/\//g, '-');
+    const cleanToday = new Date(wibDateString);
 
     // Jaring Pengaman JIT (Just-In-Time) Auto-Alpha
     try {
@@ -178,8 +183,17 @@ export async function GET(req: NextRequest) {
         const dayOfWeek = d.getDay();
         
         if (dayOfWeek !== 0 && dayOfWeek !== 6) { // Skip weekend
-          const targetStart = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0));
-          const targetEnd = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999));
+          const dayWIBFormatter = new Intl.DateTimeFormat('en-CA', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            timeZone: 'Asia/Jakarta'
+          });
+          const dWibString = dayWIBFormatter.format(d).replace(/\//g, '-');
+          const targetDateWIB = new Date(dWibString); // Ini akan menjadi 00:00 WIB untuk tanggal tersebut
+
+          const targetStart = targetDateWIB;
+          const targetEnd = new Date(targetDateWIB.getTime() + 24 * 60 * 60 * 1000 - 1); // Ini akan menjadi 23:59:59.999 WIB untuk tanggal tersebut
 
           const totalSiswaHariItu = await prisma.siswa.count({
             where: { pengguna: { aktif: true } }
@@ -273,7 +287,7 @@ export async function GET(req: NextRequest) {
         kelasSiswa: l.siswa.kelas.nama,
         telepon: l.telepon,
         status: l.status,
-        sentAt: l.sentAt.toISOString().split("T")[1].slice(0, 8),
+        sentAt: new Date(l.sentAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "Asia/Jakarta" }),
         error: l.error
       })),
       trendKehadiran,

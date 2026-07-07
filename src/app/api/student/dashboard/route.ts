@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
         id: k.id,
         tanggal: k.tanggal.toISOString().split("T")[0],
         status: k.status,
-        waktuMasuk: k.waktuMasuk ? new Date(k.waktuMasuk).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : null,
+        waktuMasuk: k.waktuMasuk ? new Date(k.waktuMasuk).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "Asia/Jakarta" }) : null,
         catatan: k.catatan
       }))
     });

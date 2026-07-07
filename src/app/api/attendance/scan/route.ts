@@ -159,10 +159,26 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Periksa Kesiapan Tanggal Absensi Harian (Zona Waktu WIB / UTC+7)
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const dateStr = wibDate.toISOString().split("T")[0];
-    const cleanDate = new Date(dateStr); // Database date: YYYY-MM-DD
+    const now = new Date(); // Get current time in UTC
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta' // Explicitly set to WIB
+    };
+    const formatter = new Intl.DateTimeFormat('en-CA', options); // 'en-CA' for YYYY-MM-DD format
+    const wibDateString = formatter.format(now).replace(/\//g, '-'); // Format YYYY-MM-DD
+    const cleanDate = new Date(wibDateString); // Create Date object from WIB date string
+
+    // For visual and comparison, use the same wibDateString but format time
+    const wibTimeFormatter = new Intl.DateTimeFormat('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23', // Ensure 24-hour format
+      timeZone: 'Asia/Jakarta'
+    });
+    const jamMenitVisual = wibTimeFormatter.format(now);
+    const jamMenitSekarang = jamMenitVisual;
 
     // Cek duplikasi absensi hari ini
     const absensiHariIni = await prisma.kehadiran.findUnique({

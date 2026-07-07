@@ -210,6 +210,7 @@ export default function StudentPage() {
   const [simulatedToken, setSimulatedToken] = useState("");
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isProcessingScan = useRef(false); // Add this ref for scan processing guard
 
   // Mengambil data dashboard
   async function fetchDashboardData() {
@@ -306,23 +307,19 @@ export default function StudentPage() {
 
       // Konfigurasi 1: Resolusi Tinggi & Continuous Autofocus
       const configWithHighRes = {
-        fps: 20,
+        fps: 10,
         qrbox: qrBoxFunction,
+        aspectRatio: 1,
         videoConstraints: {
-          width: { min: 640, ideal: 1920, max: 3840 },
-          height: { min: 480, ideal: 1080, max: 2160 },
           facingMode: "environment",
-          // @ts-ignore
-          advanced: [
-            { focusMode: "continuous" } as any // Paksa browser mengaktifkan continuous autofocus jika didukung perangkat
-          ]
         }
       };
 
       // Konfigurasi 2 (Fallback): Sangat kompatibel untuk Safari/iOS PWA
       const configFallback = {
-        fps: 20,
+        fps: 10,
         qrbox: qrBoxFunction,
+        aspectRatio: 1,
         videoConstraints: {
           facingMode: "environment"
         }
@@ -334,6 +331,9 @@ export default function StudentPage() {
           cameraSource,
           configWithHighRes,
           async (decodedText) => {
+            if (isProcessingScan.current) return;
+            isProcessingScan.current = true;
+            console.log("QR TERBACA:", decodedText); // Debugging line
             await kirimAbsensi(decodedText);
           },
           (errorMessage) => {}
@@ -346,10 +346,18 @@ export default function StudentPage() {
           { facingMode: "environment" },
           configFallback,
           async (decodedText) => {
+            if (isProcessingScan.current) return;
+            isProcessingScan.current = true;
+            console.log("QR TERBACA:", decodedText); // Debugging line
             await kirimAbsensi(decodedText);
           },
           (errorMessage) => {}
         );
+      }
+
+      const videoElement = document.querySelector("#reader video") as HTMLVideoElement;
+      if (videoElement) {
+        videoElement.setAttribute("playsinline", "true");
       }
 
       setScannerInitialized(true);
@@ -437,24 +445,24 @@ export default function StudentPage() {
       const capabilities = scannerRef.current.getRunningTrackCapabilities();
       const nextZoom = zoomLevel === 1 ? 2.5 : 1; // Toggle antara 1x dan 2.5x
       
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((capabilities as any).zoom) {
-        await scannerRef.current.applyVideoConstraints({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          advanced: [{ zoom: nextZoom } as any]
-        });
-        setZoomLevel(nextZoom);
-      } else {
-        // Fallback: Terapkan digital CSS preview zoom untuk iPhone/iOS/HP tanpa zoom hardware
-        const video = document.querySelector("#reader video") as HTMLVideoElement;
-        if (video) {
-          video.style.transform = nextZoom > 1 ? "scale(1.5)" : "scale(1.0)";
-          video.style.transformOrigin = "center";
-          setZoomLevel(nextZoom);
-        } else {
-          toast.error("Zoom optik tidak didukung pada perangkat ini. Menggunakan zoom digital (CSS).");
-        }
-      }
+          if ((capabilities as any).zoom) {
+            await scannerRef.current.applyVideoConstraints({
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              advanced: [{ zoom: nextZoom } as any]
+            });
+            setZoomLevel(nextZoom);
+          } else {
+            // Fallback: Terapkan digital CSS preview zoom untuk iPhone/iOS/HP tanpa zoom hardware
+            const video = document.querySelector("#reader video") as HTMLVideoElement;
+            if (video) {
+              video.style.transform = nextZoom > 1 ? "scale(2.5)" : "scale(1.0)"; // Changed scale to 2.5
+              video.style.transformOrigin = "center";
+              setZoomLevel(nextZoom);
+            } else {
+              toast.error("Zoom optik tidak didukung pada perangkat ini. Menggunakan zoom digital (CSS).");
+            }
+          }
     } catch (err) {
       toast.error("Gagal mengatur zoom kamera.");
     }
@@ -501,11 +509,13 @@ export default function StudentPage() {
                     finalLatitude = position.coords.latitude;
                     finalLongitude = position.coords.longitude;
                     setGpsLoading(false);
+                    isProcessingScan.current = false; // Reset flag after getting GPS
                     await sendAttendanceRequest(tokenString, finalLatitude, finalLongitude);
                   },
                   (error) => {
                     setGpsLoading(false);
                     playErrorFeedback();
+                    isProcessingScan.current = false; // Reset flag on error
                     let errorMsg = "Gagal mendapatkan lokasi GPS.";
                     if (error.code === error.PERMISSION_DENIED) {
                       errorMsg = "Akses lokasi diblokir. Buka Pengaturan > Privasi & Keamanan > Layanan Lokasi dan izinkan akses lokasi untuk Safari/browser ini.";
@@ -528,6 +538,7 @@ export default function StudentPage() {
       ), { duration: Infinity });
     } else {
       setGpsLoading(false);
+      isProcessingScan.current = false; // Reset flag if no GPS needed
       await sendAttendanceRequest(tokenString, null, null);
     }
   }

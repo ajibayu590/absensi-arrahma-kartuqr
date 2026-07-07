@@ -1,0 +1,208 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Peran {
+  ADMIN
+  KEPALA_SEKOLAH
+  GURU
+  SISWA
+}
+
+enum StatusKehadiran {
+  HADIR
+  TERLAMBAT
+  SAKIT
+  IZIN
+  ALPHA
+}
+
+enum StatusLogWa {
+  TERKIRIM
+  GAGAL
+  GAGAL_OFFLINE
+  TERTUNDA
+}
+
+model Pengguna {
+  id                  Int             @id @default(autoincrement())
+  nama                String
+  email               String          @unique
+  kataSandi           String
+  peran               Peran           @default(SISWA)
+  isPasswordSementara Boolean         @default(true)
+  aktif               Boolean         @default(true)
+  sidikJariBrowser    String?         @db.Text
+  absenDiblokirHingga DateTime?
+  dibuatPada          DateTime        @default(now())
+  diubahPada          DateTime        @updatedAt
+
+  siswa               Siswa?
+  guru                Guru?
+  logAuditAdmin       LogAuditAdmin[]
+  kehadiranDicatat    Kehadiran[]     @relation("PencatatKehadiran")
+  logKonselingBk      LogKonselingBk[] @relation("GuruBkKonseling")
+  dispensasiDisetujui DispensasiKeterlambatan[] @relation("PencatatDispensasi")
+}
+
+model Kelas {
+  id           Int       @id @default(autoincrement())
+  nama         String    @unique
+  tahunAjaran  String
+  siswa        Siswa[]
+  idGuru       Int?      @unique
+  guru         Guru?     @relation("WaliKelas", fields: [idGuru], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  dibuatPada   DateTime  @default(now())
+  diubahPada   DateTime  @updatedAt
+}
+
+model Guru {
+  id          Int       @id @default(autoincrement())
+  nip         String?   @unique
+  telepon     String?   // Nomor WA untuk laporan otomatis Wali Kelas
+  idPengguna  Int       @unique
+  pengguna    Pengguna  @relation(fields: [idPengguna], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  isBk        Boolean   @default(false)
+  kelasWali   Kelas?    @relation("WaliKelas")
+  jadwalPiket JadwalPiket[]
+  dibuatPada  DateTime  @default(now())
+  diubahPada  DateTime  @updatedAt
+}
+
+model Siswa {
+  id                   Int              @id @default(autoincrement())
+  nisn                 String           @unique
+  nama                 String
+  idKelas              Int
+  teleponOrangTua      String
+  sedangMagang         Boolean          @default(false)
+  tanggalMulaiMagang   DateTime?
+  tanggalSelesaiMagang DateTime?
+  idPengguna           Int              @unique
+  pengguna             Pengguna         @relation(fields: [idPengguna], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  kelas                Kelas            @relation(fields: [idKelas], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  kehadiran            Kehadiran[]
+  logWa                LogWa[]
+  logKonselingBk       LogKonselingBk[]
+  dispensasiKeterlambatan DispensasiKeterlambatan[]
+  dibuatPada           DateTime         @default(now())
+  diubahPada           DateTime         @updatedAt
+}
+
+model Kehadiran {
+  id          Int             @id @default(autoincrement())
+  idSiswa     Int
+  tanggal     DateTime        @db.Date
+  tahunAjaran String          @default("2024/2025") // Kolom baru untuk optimasi rekap
+  status      StatusKehadiran @default(HADIR)
+  waktuMasuk  DateTime?
+  latitude    Float?
+  longitude   Float?
+  dicatatOleh Int?
+  catatan     String?
+  siswa       Siswa           @relation(fields: [idSiswa], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pencatat    Pengguna?       @relation("PencatatKehadiran", fields: [dicatatOleh], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  dibuatPada  DateTime        @default(now())
+  diubahPada  DateTime        @updatedAt
+
+  @@unique([idSiswa, tanggal])
+  @@index([tanggal, status])
+  @@index([tahunAjaran])
+}
+
+model LogWa {
+  id        Int         @id @default(autoincrement())
+  idSiswa   Int
+  telepon   String
+  pesan     String      @db.Text
+  status    StatusLogWa @default(TERTUNDA)
+  error     String?     @db.Text
+  sentAt    DateTime    @default(now())
+  siswa     Siswa       @relation(fields: [idSiswa], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Pengaturan {
+  id         Int      @id @default(autoincrement())
+  kunci      String   @unique
+  nilai      String   @db.Text
+  dibuatPada DateTime @default(now())
+  diubahPada DateTime @updatedAt
+}
+
+model HariLibur {
+  id         Int      @id @default(autoincrement())
+  tanggal    DateTime @db.Date @unique
+  nama       String
+  isKustom   Boolean  @default(false)
+  dibuatPada DateTime @default(now())
+  diubahPada DateTime @updatedAt
+}
+
+model LogAuditAdmin {
+  id         Int      @id @default(autoincrement())
+  idPengguna Int
+  pengguna   Pengguna @relation(fields: [idPengguna], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  tindakan   String   // e.g. "UPDATE_SETTINGS", "RESET_PASSWORD", "SYNC_HOLIDAYS", "IMPORT_STUDENTS"
+  target     String   // e.g. "GPS_SCHOOL", "TEACHER_12", "HOLIDAYS"
+  detail     String   @db.Text // Menyimpan data JSON sebelum dan sesudah perubahan
+  createdAt  DateTime @default(now())
+}
+
+model LogKonselingBk {
+  id         Int      @id @default(autoincrement())
+  idSiswa    Int
+  siswa      Siswa    @relation(fields: [idSiswa], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  idBk       Int      // User ID dari BK yang mencatat
+  guruBk     Pengguna @relation("GuruBkKonseling", fields: [idBk], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  detail     String   @db.Text
+  dibuatPada DateTime @default(now())
+  diubahPada DateTime @updatedAt
+}
+
+enum HariPiket {
+  SENIN
+  SELASA
+  RABU
+  KAMIS
+  JUMAT
+  SABTU
+}
+
+model JadwalPiket {
+  id         Int       @id @default(autoincrement())
+  hari       HariPiket
+  idGuru     Int
+  guru       Guru      @relation(fields: [idGuru], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  dibuatPada DateTime  @default(now())
+  diubahPada DateTime  @updatedAt
+
+  @@unique([hari, idGuru])
+}
+
+enum StatusDispensasi {
+  MENUNGGU
+  DISETUJUI
+  DITOLAK
+}
+
+model DispensasiKeterlambatan {
+  id            Int              @id @default(autoincrement())
+  idSiswa       Int
+  siswa         Siswa            @relation(fields: [idSiswa], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tanggal       DateTime         @db.Date
+  alasan        String           @db.Text
+  fotoBukti     String?          @db.VarChar(255)
+  status        StatusDispensasi @default(MENUNGGU)
+  disetujuiOleh Int?             // User ID yang menyetujui (Guru Piket/Admin)
+  pencatat      Pengguna?        @relation("PencatatDispensasi", fields: [disetujuiOleh], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  dibuatPada    DateTime         @default(now())
+  diubahPada    DateTime         @updatedAt
+
+  @@unique([idSiswa, tanggal])
+}
+

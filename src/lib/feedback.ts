@@ -2,6 +2,26 @@
    * Browser Feedback Utilities using Web Audio API and Haptic Vibration API
    */
 
+let sharedAudioCtx: AudioContext | null = null;
+
+/**
+ * Inisialisasi dan resume AudioContext pada user gesture (sangat penting untuk iOS Safari)
+ */
+export function initAudioContext() {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass && !sharedAudioCtx) {
+      sharedAudioCtx = new AudioContextClass();
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === "suspended") {
+      sharedAudioCtx.resume();
+    }
+  } catch (err) {
+    console.warn("Gagal inisialisasi AudioContext:", err);
+  }
+}
+
 /**
  * Memutar audio bip frekuensi tinggi (1000Hz, 150ms) dan getar 150ms
  */
@@ -11,8 +31,17 @@ export function playSuccessFeedback() {
   // 1. Bip Audio (Web Audio API)
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (AudioContextClass) {
-      const ctx = new AudioContextClass();
+    let ctx = sharedAudioCtx;
+    if (!ctx && AudioContextClass) {
+      ctx = new AudioContextClass();
+    }
+    
+    if (ctx) {
+      // Pastikan state resumed jika suspended (iOS Safari)
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+      
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -49,8 +78,17 @@ export function playErrorFeedback() {
   // 1. Bip Audio (Web Audio API)
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (AudioContextClass) {
-      const ctx = new AudioContextClass();
+    let ctx = sharedAudioCtx;
+    if (!ctx && AudioContextClass) {
+      ctx = new AudioContextClass();
+    }
+
+    if (ctx) {
+      // Pastikan state resumed jika suspended (iOS Safari)
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+      
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 

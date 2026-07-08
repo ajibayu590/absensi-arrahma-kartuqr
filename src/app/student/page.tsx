@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { playSuccessFeedback, playErrorFeedback } from "@/lib/feedback";
+import { playSuccessFeedback, playErrorFeedback, initAudioContext } from "@/lib/feedback";
 import {
   Camera,
   MapPin,
@@ -1073,6 +1073,7 @@ export default function StudentPage() {
                             toast.error("Token simulasi kosong!");
                             return;
                           }
+                          initAudioContext();
                           await kirimAbsensi(simulatedToken.trim());
                         }}
                         className="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold tracking-wider transition-colors cursor-pointer"
@@ -1143,6 +1144,7 @@ export default function StudentPage() {
               toast.error("Akun Anda diblokir sementara karena deteksi sesi ganda!");
               return;
             }
+            initAudioContext();
             setIsScanning(true);
           }}
           disabled={profile?.isAbsenDiblokir}

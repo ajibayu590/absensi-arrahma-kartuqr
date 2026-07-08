@@ -20,11 +20,8 @@ export function signToken(payload: TokenPayload): string {
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as TokenPayload;
-    console.log('auth-helper: Token verification successful, payload:', payload); // Debugging
-    return payload;
+    return jwt.verify(token, JWT_SECRET) as TokenPayload;
   } catch (error) {
-    console.log('auth-helper: Token verification failed:', error.message); // Debugging
     return null;
   }
 }

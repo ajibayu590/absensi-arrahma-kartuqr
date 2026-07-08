@@ -55,25 +55,20 @@ export async function middleware(req: NextRequest) {
   }
 
   // Jika token valid, tambahkan payload ke header request agar bisa diakses di API Routes/pages
-  const response = NextResponse.next();
-  response.headers.set('x-user-payload', JSON.stringify(payload));
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-user-payload', JSON.stringify(payload));
+  
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
   return response;
 }
 
 // Konfigurasi matcher untuk middleware
 export const config = {
   matcher: [
-    /*
-     * Match semua request path kecuali:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public assets (.png, .webp, dll)
-     * - /login (halaman login)
-     * - /display-qr (display QR publik)
-     * - /api/cron-alpha (sudah ada proteksi X-Scheduler-Secret)
-     * - /api/attendance/live-stream (SSE stream for public display after initial auth)
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.png|.*\\.webp|.*\\.svg|.*\\.gif|login|display-qr|api/cron-alpha|api/attendance/live-stream).*)',
   ],
 };

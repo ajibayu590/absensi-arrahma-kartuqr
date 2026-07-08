@@ -380,19 +380,17 @@ export default function StudentPage() {
     }
   }
 
-  function cleanupScanner() {
+  async function cleanupScanner() {
     if (scannerRef.current) {
       if (scannerRef.current.isScanning) {
-        scannerRef.current.stop().then(() => {
-          scannerRef.current = null;
-          setScannerInitialized(false);
-        }).catch(err => {
+        try {
+          await scannerRef.current.stop();
+        } catch (err) {
           console.error("Gagal stop scanner:", err);
-        });
-      } else {
-        scannerRef.current = null;
-        setScannerInitialized(false);
+        }
       }
+      scannerRef.current = null;
+      setScannerInitialized(false);
     }
     setFlashOn(false);
     setZoomLevel(1);
@@ -482,7 +480,7 @@ export default function StudentPage() {
   // Kirim data absensi
   async function kirimAbsensi(tokenString: string) {
     // Matikan pemindaian agar tidak dobel request
-    cleanupScanner();
+    await cleanupScanner();
     setGpsLoading(true);
 
     let finalLatitude: number | null = null;

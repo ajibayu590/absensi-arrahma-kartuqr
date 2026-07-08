@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     const selisihWaktu = Date.now() - decrypted.timestamp;
-    if (selisihWaktu > 30000 || selisihWaktu < -2000) {
+    if (selisihWaktu > 60000 || selisihWaktu < -2000) {
       // Izinkan toleransi minor offset waktu server/client -2s
       return NextResponse.json(
         { error: "Token QR kedaluwarsa. Silakan scan ulang kode terbaru di layar TV." },

@@ -7,10 +7,12 @@ import { runAutoAlpha } from "@/lib/auto-alpha";
 export async function GET(req: NextRequest) {
   try {
     const userPayloadHeader = req.headers.get('x-user-payload');
+    console.log('API /api/dashboard/summary: x-user-payload header:', userPayloadHeader); // Debugging
     if (!userPayloadHeader) {
       return NextResponse.json({ error: "Sesi tidak valid atau tidak ada payload pengguna." }, { status: 401 });
     }
     const payload: TokenPayload = JSON.parse(userPayloadHeader);
+    console.log('API /api/dashboard/summary: Parsed Payload:', payload); // Debugging
 
     if (!payload) {
       return NextResponse.json({ error: "Sesi tidak valid." }, { status: 401 });

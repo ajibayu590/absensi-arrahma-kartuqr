@@ -5,7 +5,6 @@ self.addEventListener('install', function(event) {
     caches.open('absensi-cache').then(function(cache) {
       return cache.addAll([
         '/',
-        '/index.html',
         '/icon-192.png',
         '/icon-512.png',
         // Add other assets you want to cache

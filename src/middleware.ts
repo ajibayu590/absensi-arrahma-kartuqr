@@ -37,6 +37,13 @@ export async function middleware(req: NextRequest) {
 
   if (token) {
     payload = verifyToken(token);
+    if (payload) {
+      console.log('Middleware: Token verified, Payload:', payload); // Debugging
+    } else {
+      console.log('Middleware: Token invalid or expired.'); // Debugging
+    }
+  } else {
+    console.log('Middleware: No token found in cookies.'); // Debugging
   }
 
   // Jika tidak ada token atau token tidak valid, redirect ke halaman login

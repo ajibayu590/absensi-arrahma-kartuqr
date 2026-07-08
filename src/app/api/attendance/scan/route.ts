@@ -42,16 +42,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-export async function POST(req: NextRequest) {
-  try {
-    const payload = getUserFromRequest(req);
 
-    if (!payload || payload.peran !== "SISWA") {
-      return NextResponse.json(
-        { error: "Akses ditolak. Hanya siswa yang dapat melakukan pemindaian mandiri." },
-        { status: 403 }
-      );
-    }
 
     const { token, latitude, longitude } = await req.json();
 
@@ -213,7 +204,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Tentukan Status Kehadiran (HADIR / TERLAMBAT / DITOLAK karena melebih toleransi)
-    const jamMenitSekarang = wibDate.toISOString().split("T")[1].slice(0, 5); // e.g. "07:05"
+    // const jamMenitSekarang = wibDate.toISOString().split("T")[1].slice(0, 5); // e.g. "07:05" // Dihapus, sudah dideklarasikan di atas
     const jamMasuk = config["jam_masuk"] || "07:00";
     const jamToleransi = config["jam_toleransi"] || "07:15";
 
@@ -247,17 +238,18 @@ export async function POST(req: NextRequest) {
     });
 
     // Format jam untuk visual
-    const jamMenitVisual = wibDate.toISOString().split("T")[1].slice(0, 5);
+    // const jamMenitVisual = wibDate.toISOString().split("T")[1].slice(0, 5); // Dihapus, sudah dideklarasikan di atas
 
     // 8. Pancarkan event real-time (SSE) ke layar TV
     broadcastAttendance(siswa.nama, jamMenitVisual);
 
     // 9. Susun Pesan & Buat Log Notifikasi WhatsApp (Antrean Gateway)
-    const tglFormat = wibDate.toLocaleDateString("id-ID", {
+    const tglFormat = now.toLocaleDateString("id-ID", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "Asia/Jakarta" // Tambahkan timezone secara eksplisit
     });
 
     let pesanWa = "";

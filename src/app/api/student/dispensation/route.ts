@@ -1,3 +1,5 @@
+// src/app/api/student/dispensation/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { TokenPayload } from "@/lib/auth-helper"; // Import TokenPayload
@@ -90,12 +92,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }
-
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { TokenPayload } from "@/lib/auth-helper"; // Import TokenPayload
-import { promises as fs } from "fs";
-import path from "path";
 
 export async function GET(req: NextRequest) {
   try {

@@ -2,34 +2,22 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken, TokenPayload } from './lib/auth-helper';
 
-// Daftar path yang dilindungi dan memerlukan otentikasi
-const protectedPaths = [
-  '/student',
-  '/dashboard',
-  '/dashboard/(.*)',
-  '/api/attendance/(.*)',
-  '/api/admin/(.*)',
-  '/api/settings/(.*)',
-  '/api/reports/(.*)',
-  '/api/student/(.*)',
-  '/api/token-qr', // Token QR hanya bisa diambil oleh siswa yang login
-  '/api/picket-schedules/today' // Guru piket today juga butuh auth
-];
-
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   console.log('Middleware triggered for pathname:', pathname); // Debugging
   
-  // Cek apakah path saat ini adalah path yang dilindungi
-  const isProtected = protectedPaths.some(path => {
-    if (path.endsWith('(.*)')) {
-      const base = path.slice(0, -4); // Remove (.*)
-      return pathname.startsWith(base);
-    }
-    return pathname === path;
-  });
+  // Daftar path publik yang boleh diakses tanpa token sesi
+  const publicPaths = [
+    '/login',
+    '/display-qr',
+    '/api/auth/login',
+    '/api/attendance/live-stream',
+    '/api/attendance/auto-alpha',
+    '/api/cron/wa-digest'
+  ];
 
-  if (!isProtected) {
+  const isPublic = publicPaths.some(path => pathname === path);
+  if (isPublic) {
     return NextResponse.next();
   }
 

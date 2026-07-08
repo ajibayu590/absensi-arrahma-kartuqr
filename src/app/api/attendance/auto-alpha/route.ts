@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { runAutoAlpha } from "@/lib/auto-alpha";
 import { getUserFromRequest } from "@/lib/auth-helper";
 
-const SCHEDULER_SECRET = process.env.SCHEDULER_SECRET || "";
+const SCHEDULER_SECRET = process.env.SCHEDULER_SECRET || "absensi_smk_ar_rahma_scheduler_secret_key_2026";
 
 export async function POST(req: NextRequest) {
   try {

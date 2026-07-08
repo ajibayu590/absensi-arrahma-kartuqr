@@ -12,13 +12,17 @@ const handle = app.getRequestHandler();
 const AUTO_ALPHA_HOUR = parseInt(process.env.AUTO_ALPHA_HOUR || "7", 10);
 const AUTO_ALPHA_MINUTE = parseInt(process.env.AUTO_ALPHA_MINUTE || "10", 10);
 const AUTO_ALPHA_INTERVAL_MS = parseInt(process.env.AUTO_ALPHA_INTERVAL_MS || "30000", 10);
+const SCHEDULER_SECRET = process.env.SCHEDULER_SECRET || "absensi_smk_ar_rahma_scheduler_secret_key_2026";
 
 let autoAlphaTriggeredToday = null;
 
 function triggerAutoAlpha() {
   fetch(`http://localhost:${port}/api/attendance/auto-alpha`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "x-scheduler-secret": SCHEDULER_SECRET
+    },
   })
     .then((res) => res.json())
     .then((data) => console.log("[SCHEDULER] Auto-alpha result:", data))

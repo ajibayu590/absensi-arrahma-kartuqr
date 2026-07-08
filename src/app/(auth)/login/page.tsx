@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { getBrowserFingerprint } from "@/lib/fingerprint";
 import { Eye, EyeOff, Lock, User, RefreshCw } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [kataSandi, setKataSandi] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -66,8 +68,10 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect berdasarkan peran
-      if (data.pengguna.peran === "SISWA") {
+      // Redirect berdasarkan peran atau callbackUrl
+      if (callbackUrl) {
+        router.push(callbackUrl);
+      } else if (data.pengguna.peran === "SISWA") {
         router.push("/student");
       } else if (data.pengguna.peran === "GURU_PIKET") {
         router.push("/scan");

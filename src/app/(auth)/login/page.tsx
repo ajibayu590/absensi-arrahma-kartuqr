@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { getBrowserFingerprint } from "@/lib/fingerprint";
 import { Eye, EyeOff, Lock, User, RefreshCw } from "lucide-react";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
@@ -179,5 +179,17 @@ export default function LoginPage() {
         Fingerprint Sesi Aktif: <span className="font-mono text-zinc-500">{fingerprint || "Mendeteksi..."}</span>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <RefreshCw className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

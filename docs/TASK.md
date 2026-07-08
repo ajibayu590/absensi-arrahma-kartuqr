@@ -176,14 +176,14 @@ Dokumen ini berisi daftar tugas pengerjaan (*checklist TODO*) yang dibagi ke dal
     *   [x] Implementasi logika filter `isPasswordSementara` pada fitur unduh data pengguna Admin.
     *   [x] Penyesuaian UI dashboard untuk akses download rekap/jadwal piket berdasarkan RBAC.
     *   [x] Validasi build production dan perbaikan bug variabel `tx` pada route manual attendance.
-*   [ ] **Sub-Fase 8.9: Optimalisasi Pengalaman Pengguna iOS (PWA)**
-    *   [ ] Edukasi pengguna untuk "Add to Home Screen" di iOS.
+*   **[x] Sub-Fase 8.9: Optimalisasi Pengalaman Pengguna iOS (PWA)**
+    *   [x] Edukasi pengguna untuk "Add to Home Screen" di iOS.
     *   [x] Buat pesan informatif sebelum permintaan izin GPS jika geofencing aktif.
     *   [x] Tambahkan panduan jelas di UI cara mengaktifkan GPS/kamera jika izin ditolak di iOS.
     *   [x] Pesan error kamera lebih informatif, jelaskan konfigurasi fallback.
     *   [x] Informasikan zoom digital sebagai alternatif zoom optik di iOS.
-    *   [ ] Verifikasi `cleanupScanner()` selalu terpanggil untuk mematikan kamera di iOS.
-    *   [ ] Pastikan `font-size` minimal `16px` untuk elemen input untuk menghindari auto-zoom iOS.
+    *   [x] Verifikasi `cleanupScanner()` selalu terpanggil untuk mematikan kamera di iOS.
+    *   [x] Pastikan `font-size` minimal `16px` untuk elemen input untuk menghindari auto-zoom iOS.
 
 ### FASE 9: AUTO-ALPHA SCHEDULER & NOTIFIKASI ADMIN
 *   **[x] Sub-Fase 9.1: Scheduler Auto-Alpha Terkonfigurasi via Environment**
@@ -230,15 +230,15 @@ Dokumen ini berisi daftar tugas pengerjaan (*checklist TODO*) yang dibagi ke dal
 
 ### FASE 11: OPTIMALISASI PWA (PROGRESSIVE WEB APP) UNTUK ANDROID & iOS
 
-*   [ ] **Sub-Fase 11.1: Implementasi Dasar PWA**
-    *   [ ] Buat `manifest.json` yang sesuai dengan spesifikasi PWA.
-    *   [ ] Buat `service-worker.js` untuk caching aset dan offline functionality.
-    *   [ ] Daftarkan Service Worker di `src/app/layout.tsx` atau file entry point aplikasi.
-    *   [ ] Pastikan aplikasi berfungsi di HTTPS.
-*   [ ] **Sub-Fase 11.2: Penanganan Event PWA & Notifikasi**
-    *   [ ] Implementasi `beforeinstallprompt` untuk Android (jika relevan).
-    *   [ ] Implementasi notifikasi push untuk PWA (Android & iOS).
-    *   [ ] Tangani lifecycle event Service Worker (install, activate, fetch).
+*   **[x] Sub-Fase 11.1: Implementasi Dasar PWA**
+    *   [x] Buat `manifest.json` yang sesuai dengan spesifikasi PWA.
+    *   [x] Buat `service-worker.js` untuk caching aset dan offline functionality.
+    *   [x] Daftarkan Service Worker di `src/app/layout.tsx` atau file entry point aplikasi.
+    *   [x] Pastikan aplikasi berfungsi di HTTPS.
+*   **[x] Sub-Fase 11.2: Penanganan Event PWA & Notifikasi**
+    *   [x] Implementasi `beforeinstallprompt` untuk Android (jika relevan).
+    *   [x] Implementasi notifikasi push untuk PWA (Android & iOS).
+    *   [x] Tangani lifecycle event Service Worker (install, activate, fetch).
 
 ---
 

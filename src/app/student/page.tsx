@@ -132,10 +132,21 @@ export default function StudentPage() {
       document.documentElement.classList.remove("dark");
     }
   };
+
+  useEffect(() => {
+    // Cek apakah perangkat iOS dan belum di-install sebagai PWA
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    
+    if (isIos && !isStandalone) {
+      setShowIosPrompt(true);
+    }
+  }, []);
   const [riwayat, setRiwayat] = useState<AttendanceLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
+  const [showIosPrompt, setShowIosPrompt] = useState(false);
 
   // Dispensasi States
   const [dispList, setDispList] = useState<{ id: number; tanggal: string; alasan: string; status: string; fotoBukti: string | null }[]>([]);
@@ -651,6 +662,24 @@ export default function StudentPage() {
 
       {/* BODY CONTENT */}
       <main className={`flex-1 p-6 space-y-6 overflow-y-auto pb-24 ${isScanning ? "hidden" : ""}`}>
+          {/* iOS PWA Install Education Banner */}
+          {showIosPrompt && (
+            <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 rounded-2xl p-4 flex gap-3 text-emerald-800 dark:text-emerald-300 relative animate-item-in">
+              <div className="flex-1 pr-6">
+                <h4 className="font-bold text-xs uppercase tracking-wide">Tambahkan Ke Layar Utama</h4>
+                <p className="text-[11px] mt-1 leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  Untuk pengalaman terbaik di iPhone: ketuk ikon <span className="font-extrabold text-emerald-600 dark:text-emerald-400">Bagikan (Share)</span> di bagian bawah Safari, lalu pilih <span className="font-extrabold text-emerald-600 dark:text-emerald-400">Tambah ke Layar Utama (Add to Home Screen)</span>.
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowIosPrompt(false)}
+                className="absolute top-2.5 right-3 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* PROFILE CARD */}
           {profile && (
             <div className="bg-white dark:bg-zinc-900 rounded-3xl p-5 border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm flex items-center gap-4">

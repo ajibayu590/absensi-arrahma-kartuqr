@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) { // Change to NextRequest to get he
     const payload: TokenPayload = JSON.parse(userPayloadHeader);
     
     // Hanya izinkan siswa yang sudah login untuk mengambil token QR
-    if (payload.peran !== "SISWA") {
+    if (payload.peran !== "SISWA" && payload.peran !== "ADMIN") {
       return NextResponse.json(
         { error: "Akses ditolak. Hanya siswa yang dapat mengambil token QR." },
         { status: 403 }

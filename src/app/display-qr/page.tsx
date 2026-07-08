@@ -110,6 +110,7 @@ export default function DisplayQrPage() {
 
   // Fetch token baru dari API dan ubah menjadi QR Code Data URL
   async function fetchNewToken() {
+    setLoadingQr(true); // Mulai loading
     try {
       const res = await fetch("/api/token-qr");
       const data = await res.json();
@@ -120,21 +121,29 @@ export default function DisplayQrPage() {
           jamToleransiRef.current = data.jamToleransi;
         }
         
-        // Ubah token menjadi QR Code base64 image source
-        const url = await QRCode.toDataURL(data.token, {
-          width: 800,
-          margin: 0, // Set margin 0 untuk memaksimalkan ukuran QR Code ke tepi wadah
-          errorCorrectionLevel: "L",
-          color: {
-            dark: "#000000",
-            light: "#ffffff",
-          },
+        // Ubah token menjadi QR Code base64 image source secara asynchronous
+        // Membungkusnya dalam Promise dan setTimeout untuk memastikan tidak memblokir UI
+        await new Promise<void>((resolve) => {
+          setTimeout(async () => {
+            const url = await QRCode.toDataURL(data.token, {
+              width: 800,
+              margin: 0, // Set margin 0 untuk memaksimalkan ukuran QR Code ke tepi wadah
+              errorCorrectionLevel: "L",
+              color: {
+                dark: "#000000",
+                light: "#ffffff",
+              },
+            });
+            setQrDataUrl(url);
+            setCountdown(10);
+            resolve();
+          }, 0); // Defer to allow UI to update
         });
-        setQrDataUrl(url);
-        setCountdown(10);
       }
     } catch (error) {
       console.error("Gagal mengambil token QR:", error);
+    } finally {
+      setLoadingQr(false); // Selesai loading
     }
   }
 
@@ -292,7 +301,12 @@ export default function DisplayQrPage() {
           {/* QR Code Container (Fills the available space, max-h-[60vh] untuk memaksimalkan ukuran scan jarak jauh) */}
           <div className="flex-1 min-h-0 flex items-center justify-center py-4">
             <div className="p-5 bg-white rounded-3xl shadow-2xl border-4 border-emerald-500/25 flex items-center justify-center transition-all duration-300 transform hover:scale-[1.01] h-full max-h-[60vh] aspect-square">
-              {qrDataUrl ? (
+              {loadingQr ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 font-semibold gap-3 aspect-square">
+                  <RefreshCw className="w-8 h-8 animate-spin text-emerald-500" />
+                  <span className="text-[10px] tracking-wider">MEMBUAT TOKEN QR...</span>
+                </div>
+              ) : qrDataUrl ? (
                 <img
                   src={qrDataUrl}
                   alt="Dynamic QR Code Token"
@@ -301,8 +315,8 @@ export default function DisplayQrPage() {
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-400 font-semibold gap-3 aspect-square">
-                  <RefreshCw className="w-8 h-8 animate-spin text-emerald-500" />
-                  <span className="text-[10px] tracking-wider">MEMBUAT TOKEN QR...</span>
+                  <RefreshCw className="w-8 h-8 animate-spin text-zinc-500" />
+                  <span className="text-[10px] tracking-wider">TOKEN QR TIDAK TERSEDIA</span>
                 </div>
               )}
             </div>

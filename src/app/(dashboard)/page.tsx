@@ -60,22 +60,6 @@ interface SummaryData {
 }
 
 export default function DashboardPage() {
-  // Info helper component
-  function Info({ className }: { className?: string }) {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={2}
-        stroke="currentColor"
-        className={className}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.08 1.04l-.425.847a.75.75 0 0 0-.424.676v.117m0 2.176h.008v.008H12v-.008Zm9.228-3.176a9 9 0 1 1-18.001 0 9 9 0 0 1 18.001 0Z" />
-      </svg>
-    );
-  }
-
   const [data, setData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);

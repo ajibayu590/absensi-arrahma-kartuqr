@@ -346,7 +346,7 @@ export default function HolidaysPage() {
               ⚠️ Konfirmasi Hapus
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-3 leading-relaxed">
-              Apakah Anda yakin ingin menghapus hari libur **"{selectedHoliday?.nama}"** pada tanggal **{selectedHoliday && formatTanggalIndo(selectedHoliday.tanggalStr)}**? 
+              Apakah Anda yakin ingin menghapus hari libur **&quot;{selectedHoliday?.nama}&quot;** pada tanggal **{selectedHoliday && formatTanggalIndo(selectedHoliday.tanggalStr)}**? 
               Tindakan ini tidak dapat dibatalkan.
             </p>
 

@@ -23,6 +23,7 @@ export default function DisplayQrPage() {
   const [token, setToken] = useState<string>("");
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [countdown, setCountdown] = useState<number>(10);
+  const [loadingQr, setLoadingQr] = useState<boolean>(false);
   const [successLogs, setSuccessLogs] = useState<AttendanceLog[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting");
   const [piketTeachers, setPiketTeachers] = useState<{ id: number; nama: string; nip: string | null }[]>([]);

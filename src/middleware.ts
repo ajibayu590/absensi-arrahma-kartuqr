@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken, TokenPayload } from './lib/auth-helper';
+import { verifyTokenEdge, TokenPayload } from './lib/auth-helper';
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -27,7 +27,7 @@ export async function middleware(req: NextRequest) {
   let payload: TokenPayload | null = null;
 
   if (token) {
-    payload = verifyToken(token);
+    payload = await verifyTokenEdge(token);
     if (payload) {
       console.log('Middleware: Token verified, Payload:', payload); // Debugging
     } else {

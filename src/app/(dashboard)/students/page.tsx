@@ -338,7 +338,7 @@ function StudentsPageContent() {
                     idKelas: s.idKelas,
                     teleponOrangTua: s.teleponOrangTua,
                     sedangMagang: s.sedangMagang,
-                    aktif: s.pengguna.aktif,
+                    aktif: s.aktif,
                     resetPassword: true,
                   }),
                 });

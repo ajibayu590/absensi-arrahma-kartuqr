@@ -18,7 +18,8 @@ const protectedPaths = [
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
+  console.log('Middleware triggered for pathname:', pathname); // Debugging
+  
   // Cek apakah path saat ini adalah path yang dilindungi
   const isProtected = protectedPaths.some(path => {
     if (path.endsWith('(.*)')) {

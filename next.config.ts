@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["ruangrupa.ajibayu.my.id"],
+  allowedDevOrigins: ["ruangrupa.ajibayu.my.id", "smkarrahma.ajibayu.my.id"],
   serverExternalPackages: ["@react-pdf/renderer"],
   webpack: (config, { isServer }) => {
     if (isServer) {

@@ -10,6 +10,8 @@ export async function middleware(req: NextRequest) {
   const publicPaths = [
     '/login',
     '/display-qr',
+    '/manifest.json',
+    '/service-worker.js',
     '/api/auth/login',
     '/api/attendance/live-stream',
     '/api/attendance/auto-alpha',

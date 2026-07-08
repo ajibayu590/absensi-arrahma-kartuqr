@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth-helper";
 import { decryptToken } from "@/lib/token-helper";
 import { broadcastAttendance } from "@/lib/sse";
 import { kirimWaDenganAntrean } from "@/lib/whatsapp";
+import { TokenPayload } from "@/lib/auth-helper"; // Import TokenPayload
 
 // Fungsi rumus Haversine untuk menghitung jarak spasial (dalam meter) antara dua titik koordinat GPS
 function hitungJarakHaversine(
@@ -26,6 +26,21 @@ function hitungJarakHaversine(
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c; // Jarak dalam meter
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const userPayloadHeader = req.headers.get('x-user-payload');
+    if (!userPayloadHeader) {
+      return NextResponse.json({ error: "Sesi tidak valid atau tidak ada payload pengguna." }, { status: 401 });
+    }
+    const payload: TokenPayload = JSON.parse(userPayloadHeader);
+
+    if (payload.peran !== "SISWA") {
+      return NextResponse.json(
+        { error: "Akses ditolak. Hanya siswa yang dapat melakukan pemindaian mandiri." },
+        { status: 403 }
+      );
+    }
 
 export async function POST(req: NextRequest) {
   try {

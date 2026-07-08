@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { encryptToken } from "@/lib/token-helper";
 import prisma from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth-helper"; // Import auth-helper
+import { TokenPayload } from "@/lib/auth-helper"; // Import auth-helper dan TokenPayload
 
 export async function GET(req: NextRequest) { // Change to NextRequest to get headers
   try {
-    const payload = getUserFromRequest(req); // Get user payload
-
+    const userPayloadHeader = req.headers.get('x-user-payload');
+    if (!userPayloadHeader) {
+      return NextResponse.json({ error: "Sesi tidak valid atau tidak ada payload pengguna." }, { status: 401 });
+    }
+    const payload: TokenPayload = JSON.parse(userPayloadHeader);
+    
     // Hanya izinkan siswa yang sudah login untuk mengambil token QR
-    if (!payload || payload.peran !== "SISWA") {
+    if (payload.peran !== "SISWA") {
       return NextResponse.json(
         { error: "Akses ditolak. Hanya siswa yang dapat mengambil token QR." },
         { status: 403 }

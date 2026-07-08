@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth-helper";
+import { TokenPayload } from "@/lib/auth-helper"; // Import TokenPayload
 import { startOfMonth, endOfMonth } from "date-fns";
 import { runAutoAlpha } from "@/lib/auto-alpha";
 
 export async function GET(req: NextRequest) {
   try {
-    const payload = getUserFromRequest(req);
+    const userPayloadHeader = req.headers.get('x-user-payload');
+    if (!userPayloadHeader) {
+      return NextResponse.json({ error: "Sesi tidak valid atau tidak ada payload pengguna." }, { status: 401 });
+    }
+    const payload: TokenPayload = JSON.parse(userPayloadHeader);
 
     if (!payload) {
       return NextResponse.json({ error: "Sesi tidak valid." }, { status: 401 });

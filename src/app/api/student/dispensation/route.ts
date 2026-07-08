@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getUserFromRequest } from "@/lib/auth-helper";
+import { TokenPayload } from "@/lib/auth-helper"; // Import TokenPayload
 import { promises as fs } from "fs";
 import path from "path";
 
 export async function POST(req: NextRequest) {
   try {
-    const payload = getUserFromRequest(req);
+    const userPayloadHeader = req.headers.get('x-user-payload');
+    if (!userPayloadHeader) {
+      return NextResponse.json({ error: "Sesi tidak valid atau tidak ada payload pengguna." }, { status: 401 });
+    }
+    const payload: TokenPayload = JSON.parse(userPayloadHeader);
 
     if (!payload || payload.peran !== "SISWA") {
       return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });
@@ -87,9 +91,19 @@ export async function POST(req: NextRequest) {
   }
 }
 
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { TokenPayload } from "@/lib/auth-helper"; // Import TokenPayload
+import { promises as fs } from "fs";
+import path from "path";
+
 export async function GET(req: NextRequest) {
   try {
-    const payload = getUserFromRequest(req);
+    const userPayloadHeader = req.headers.get('x-user-payload');
+    if (!userPayloadHeader) {
+      return NextResponse.json({ error: "Sesi tidak valid atau tidak ada payload pengguna." }, { status: 401 });
+    }
+    const payload: TokenPayload = JSON.parse(userPayloadHeader);
 
     if (!payload || payload.peran !== "SISWA") {
       return NextResponse.json({ error: "Akses ditolak." }, { status: 403 });

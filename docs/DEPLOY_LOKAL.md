@@ -163,7 +163,7 @@ Jika Anda ingin aplikasi Next.js ini benar-benar berjalan sebagai **Windows Serv
 
 Geofencing GPS dan pemindaian Kamera memerlukan protokol **HTTPS** agar browser perangkat (terutama iOS/Chrome mobile) mengizinkan akses kamera & GPS. Berikut cara konfigurasi domain lokal (misal: `absensi.local`) berprotokol HTTPS menggunakan router MikroTik dan Windows Server.
 
-### 1. Konfigurasi DNS Static di MikroTik
+### 1. Konfigurasi DNS Static & Firewall di MikroTik
 Agar domain `absensi.local` diarahkan ke Windows lokal server Anda:
 1. Dapatkan IP Statis Windows lokal server Anda (contoh: `192.168.1.100`).
 2. Masuk ke **WinBox** MikroTik.
@@ -173,6 +173,47 @@ Agar domain `absensi.local` diarahkan ke Windows lokal server Anda:
    * **Address**: `192.168.1.100` (IP Windows lokal server Anda)
 5. Klik **Apply** -> **OK**.
 6. Hubungkan perangkat client (HP/Tablet) ke Wi-Fi sekolah yang dikelola MikroTik tersebut. Domain `absensi.local` kini mengarah ke Windows server.
+
+#### A. Paksa Klien Menggunakan DNS MikroTik (Force DNS Redirect via NAT)
+Siswa seringkali mengubah setelan DNS HP mereka secara manual ke DNS publik (seperti `8.8.8.8` or `1.1.1.1`). Jika ini terjadi, domain lokal `absensi.local` tidak akan bisa diakses karena dilempar ke server DNS internet publik.
+Guna mengatasinya, buat aturan NAT di MikroTik untuk membelokkan semua permintaan DNS (port 53) ke DNS internal MikroTik secara paksa:
+
+1. Buka **WinBox** MikroTik.
+2. Buka menu **IP** -> **Firewall** -> Pilih tab **NAT**.
+3. Klik tombol **+** (Add) untuk protokol **UDP**:
+   * **Tab General**:
+     * **Chain**: `dstnat`
+     * **Protocol**: `17 (udp)`
+     * **Dst. Port**: `53`
+   * **Tab Action**:
+     * **Action**: `redirect`
+     * **To Ports**: `53`
+4. Klik **Apply** -> **OK**.
+5. Klik tombol **+** (Add) lagi untuk protokol **TCP**:
+   * **Tab General**:
+     * **Chain**: `dstnat`
+     * **Protocol**: `6 (tcp)`
+     * **Dst. Port**: `53`
+   * **Tab Action**:
+     * **Action**: `redirect`
+     * **To Ports**: `53`
+6. Klik **Apply** -> **OK**. 
+
+*Kini, semua permintaan nama domain oleh perangkat client Wi-Fi lokal dipaksa menggunakan data DNS dari MikroTik.*
+
+#### B. Konfigurasi Firewall Filter (Buka Akses Port Server)
+Pastikan lalu lintas data ke lokal server tidak diblokir oleh keamanan firewall filter MikroTik.
+
+1. Buka menu **IP** -> **Firewall** -> Pilih tab **Filter Rules**.
+2. Klik tombol **+** (Add) untuk membuat rule baru:
+   * **Tab General**:
+     * **Chain**: `forward`
+     * **Dst. Address**: `192.168.1.100` (IP Windows lokal server Anda)
+     * **Protocol**: `6 (tcp)`
+     * **Dst. Port**: `80,443`
+   * **Tab Action**:
+     * **Action**: `accept`
+3. Klik **Apply** -> **OK**. Tarik/geser rule ini ke posisi teratas (di atas rule drop/reject umum).
 
 ---
 

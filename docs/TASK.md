@@ -277,5 +277,6 @@ Dokumen ini berisi daftar tugas pengerjaan (*checklist TODO*) yang dibagi ke dal
 | 2026-07-08 | API Scan - Lat/Lon Validation | Menambahkan validasi tipe yang lebih kuat untuk `latitude` dan `longitude` di API scan absensi. | Validasi eksplisit untuk memastikan `latitude` dan `longitude` adalah angka yang valid sebelum digunakan. | Selesai |
 | 2026-07-08 | Middleware Authentication Audit | Audit middleware `src/middleware.ts`. | Middleware otentikasi terpusat diimplementasikan dengan benar. Logika otentikasi, otorisasi, injeksi payload, dan konfigurasi `matcher` sudah sesuai. `api/attendance/live-stream` dikembalikan menjadi publik. | Selesai |
 | 2026-07-09 | Reset Password Siswa | Error `Cannot read properties of undefined (reading 'aktif')` ketika mereset password siswa. | Mengubah referensi `s.pengguna.aktif` menjadi `s.aktif` pada fungsi `handleResetPassword` di `students/page.tsx`. | Selesai |
+| 2026-07-12 | PWA Screen Rotation | PWA Android/Tablet tidak bisa dirotasi (terkunci portrait). | Menghapus properti `"orientation": "portrait"` dari `public/manifest.json` agar rotasi dinamis diizinkan. | Selesai |
 
 

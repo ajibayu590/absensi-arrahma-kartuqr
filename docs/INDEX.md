@@ -32,6 +32,7 @@ File ini (`INDEX.md`) adalah **daftar isi utama** dan titik navigasi untuk semua
 
 | Dokumen | Deskripsi |
 |---------|-----------|
+| [DEPLOY_LOKAL.md](DEPLOY_LOKAL.md) | Panduan instalasi perangkat lunak & prosedur deploy di komputer lokal |
 | [DEPLOY.md](DEPLOY.md) | Panduan deploy production di cPanel (Node.js Selector + Phusion Passenger) |
 | [TASK.md](TASK.md) | Checklist tugas per fase (8 fase + tambahan), log perbaikan bug |
 | [TECHNICAL.md](TECHNICAL.md) | Catatan teknikal: bug fix, fitur baru, kredensial, optimalisasi QR |

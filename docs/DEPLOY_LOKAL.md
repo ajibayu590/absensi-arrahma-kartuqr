@@ -157,3 +157,125 @@ Jika Anda ingin aplikasi Next.js ini benar-benar berjalan sebagai **Windows Serv
 4. Klik **Install service**.
 5. Buka `services.msc` di Windows, cari layanan `AbsensiArRahma`, ubah Startup Type menjadi **Automatic**, lalu klik **Start**.
 
+---
+
+## 🔒 KONFIGURASI HTTPS & DOMAIN LOKAL DENGAN MIKROTIK
+
+Geofencing GPS dan pemindaian Kamera memerlukan protokol **HTTPS** agar browser perangkat (terutama iOS/Chrome mobile) mengizinkan akses kamera & GPS. Berikut cara konfigurasi domain lokal (misal: `absensi.local`) berprotokol HTTPS menggunakan router MikroTik dan Windows Server.
+
+### 1. Konfigurasi DNS Static di MikroTik
+Agar domain `absensi.local` diarahkan ke Windows lokal server Anda:
+1. Dapatkan IP Statis Windows lokal server Anda (contoh: `192.168.1.100`).
+2. Masuk ke **WinBox** MikroTik.
+3. Buka menu **IP** -> **DNS** -> Klik tombol **Static**.
+4. Klik tombol **+** (Add) dan isi:
+   * **Name**: `absensi.local`
+   * **Address**: `192.168.1.100` (IP Windows lokal server Anda)
+5. Klik **Apply** -> **OK**.
+6. Hubungkan perangkat client (HP/Tablet) ke Wi-Fi sekolah yang dikelola MikroTik tersebut. Domain `absensi.local` kini mengarah ke Windows server.
+
+---
+
+### 2. Membuat Sertifikat SSL Lokal Terpercaya (mkcert)
+Guna menghindari error "Connection not private/SSL Warning" di peramban, buat sertifikat SSL lokal menggunakan **mkcert**.
+
+1. Buka CMD / PowerShell sebagai **Administrator** di Windows Server.
+2. Pasang `mkcert` (menggunakan paket manajer Chocolatey atau unduh manual dari GitHub):
+   ```powershell
+   # Jika menggunakan Chocolatey
+   choco install mkcert
+   ```
+3. Pasang Otoritas Sertifikat (CA) mkcert ke sistem Windows agar dipercaya sistem & browser lokal:
+   ```powershell
+   mkcert -install
+   ```
+4. Generate sertifikat SSL untuk domain lokal dan IP lokal server Anda:
+   ```powershell
+   # Ganti 192.168.1.100 dengan IP Windows server Anda
+   mkcert absensi.local localhost 127.0.0.1 192.168.1.100
+   ```
+   Perintah ini akan menghasilkan dua berkas di folder berjalan:
+   * **Sertifikat**: `absensi.local+3.pem`
+   * **Kunci Privat**: `absensi.local+3-key.pem`
+
+---
+
+### 3. Konfigurasi Reverse Proxy HTTPS di Windows
+
+Untuk melayani port HTTPS (443) dan meneruskannya ke port Next.js (3000), gunakan salah satu opsi server web di Windows berikut:
+
+#### Opsi A: Menggunakan Nginx untuk Windows (Direkomendasikan)
+1. Unduh Nginx untuk Windows di [nginx.org](https://nginx.org/) dan ekstrak (misal ke `C:\nginx`).
+2. Pindahkan dua berkas `.pem` hasil generate `mkcert` ke folder `C:\nginx\conf\ssl\`.
+3. Buka dan edit berkas konfigurasi `C:\nginx\conf\nginx.conf`:
+   ```nginx
+   worker_processes  1;
+
+   events {
+       worker_connections  1024;
+   }
+
+   http {
+       include       mime.types;
+       default_type  application/octet-stream;
+       sendfile        on;
+       keepalive_timeout  65;
+
+       # Alihkan HTTP (80) ke HTTPS (443)
+       server {
+           listen       80;
+           server_name  absensi.local;
+           return 301 https://$host$request_uri;
+       }
+
+       # Konfigurasi HTTPS (443)
+       server {
+           listen       443 ssl;
+           server_name  absensi.local;
+
+           ssl_certificate      ssl/absensi.local+3.pem;
+           ssl_certificate_key  ssl/absensi.local+3-key.pem;
+
+           ssl_session_cache    shared:SSL:1m;
+           ssl_session_timeout  5m;
+           ssl_ciphers  HIGH:!aNULL:!MD5;
+           ssl_prefer_server_ciphers  on;
+
+           # Meneruskan request ke server Next.js (port 3000)
+           location / {
+               proxy_pass http://127.0.0.1:3000;
+               proxy_http_version 1.1;
+               proxy_set_header Upgrade $http_upgrade;
+               proxy_set_header Connection 'upgrade';
+               proxy_set_header Host $host;
+               proxy_cache_bypass $http_upgrade;
+               proxy_set_header X-Real-IP $remote_addr;
+               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+               proxy_set_header X-Forwarded-Proto $scheme;
+           }
+       }
+   }
+   ```
+4. Jalankan Nginx dari CMD:
+   ```cmd
+   cd C:\nginx
+   start nginx
+   ```
+5. Akses portal dari HP client melalui browser dengan mengetik: `https://absensi.local`.
+
+#### Opsi B: Menggunakan Caddy Server (Paling Cepat & Otomatis)
+Caddy secara otomatis mengelola sertifikat SSL lokal dan sangat mudah dikonfigurasi.
+1. Unduh Caddy untuk Windows di [caddyserver.com](https://caddyserver.com/).
+2. Buat file bernama `Caddyfile` di folder tempat caddy berada:
+   ```caddy
+   absensi.local {
+       tls "path/ke/absensi.local+3.pem" "path/ke/absensi.local+3-key.pem"
+       reverse_proxy localhost:3000
+   }
+   ```
+3. Jalankan Caddy dari CMD:
+   ```cmd
+   caddy run
+   ```
+
+

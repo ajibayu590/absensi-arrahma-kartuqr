@@ -312,7 +312,7 @@ const handleManualAlpha = async () => {
 
       {/* WARNING THRESHOLD BULANAN (< 90%) */}
       {isKehadiranRendah && (
-        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-2xl p-4 flex gap-3 text-red-700 dark:text-red-400 animate-pulse">
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-2xl p-4 flex gap-3 text-red-700 dark:text-red-400">
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
           <div>
             <h4 className="font-bold text-sm">PERINGATAN: Kehadiran di bawah standar minimal sekolah!</h4>
@@ -604,8 +604,8 @@ const handleManualAlpha = async () => {
                   cx="50"
                   cy="50"
                 />
-                <circle
-                  className={`transition-all duration-1000 ease-out ${
+                 <circle
+                  className={`transition-[stroke-dashoffset] duration-1000 ease-out ${
                     isKehadiranRendah ? "text-red-500 stroke-red-500" : "text-emerald-600 stroke-emerald-600"
                   }`}
                   strokeWidth="10"

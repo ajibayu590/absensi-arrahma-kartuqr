@@ -737,7 +737,7 @@ export default function StudentPage() {
                     cy="50"
                   />
                   <circle
-                    className={`transition-all duration-1000 ease-out ${getProgressColor()}`}
+                    className={`transition-[stroke-dashoffset] duration-1000 ease-out ${getProgressColor()}`}
                     strokeWidth="8"
                     strokeDasharray={2 * Math.PI * 40}
                     strokeDashoffset={

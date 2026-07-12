@@ -105,3 +105,55 @@ Buka peramban (browser) dan akses alamat: `http://localhost:3000`.
 Setelah menjalankan `npx prisma db seed`, Anda dapat login menggunakan akun administrator awal berikut:
 * **Email**: `admin@arrahma.sch.id`
 * **Kata Sandi**: `admin123`
+
+---
+
+## 🖥️ MENJALANKAN SERVER SECARA BACKGROUND DI WINDOWS
+
+Agar scheduler `auto-alpha` berjalan otomatis tanpa harus membuka terminal Command Prompt (CMD) terus-menerus di Windows, gunakan salah satu metode berikut:
+
+### Opsi A: Menggunakan PM2 (Rekomendasi & Paling Praktis)
+PM2 adalah manajer proses Node.js yang akan otomatis menjaga aplikasi tetap aktif di latar belakang (background) dan melakukan restart jika terjadi crash.
+
+1. Buka CMD/PowerShell sebagai **Administrator**.
+2. Instal PM2 secara global di sistem Windows Anda:
+   ```bash
+   npm install -g pm2
+   ```
+3. Masuk ke folder proyek, lalu daftarkan dan jalankan `server.js`:
+   ```bash
+   pm2 start server.js --name "absensi-arrahma"
+   ```
+4. **Perintah PM2 Pendukung:**
+   * Melihat status aplikasi: `pm2 status`
+   * Melihat log/output scheduler: `pm2 logs`
+   * Menghentikan server: `pm2 stop absensi-arrahma`
+   * Menyalakan ulang server: `pm2 restart absensi-arrahma`
+5. **Auto-Start saat Windows Boot:**
+   Agar PM2 otomatis berjalan ketika Windows menyala tanpa perlu login user:
+   ```bash
+   # Install helper startup Windows
+   npm install -g pm2-windows-startup
+   
+   # Registrasikan sebagai Windows Service
+   pm2-startup install
+   
+   # Simpan konfigurasi proses aktif saat ini
+   pm2 save
+   ```
+
+### Opsi B: Menggunakan NSSM (Non-Sucking Service Manager)
+Jika Anda ingin aplikasi Next.js ini benar-benar berjalan sebagai **Windows Service** resmi di sistem (`services.msc`).
+
+1. Unduh **NSSM** di [nssm.cc](https://nssm.cc/) dan ekstrak.
+2. Buka CMD sebagai **Administrator**, lalu jalankan:
+   ```cmd
+   nssm install AbsensiArRahma
+   ```
+3. Pada GUI NSSM yang muncul, isi konfigurasi berikut:
+   * **Path**: Pilih file `node.exe` Anda (contoh: `C:\Program Files\nodejs\node.exe`).
+   * **Startup directory**: Pilih folder root proyek absensi (`C:\path\ke\absensi_smk_ar_rahma`).
+   * **Arguments**: Isi `server.js`.
+4. Klik **Install service**.
+5. Buka `services.msc` di Windows, cari layanan `AbsensiArRahma`, ubah Startup Type menjadi **Automatic**, lalu klik **Start**.
+

@@ -132,3 +132,22 @@ wa-digest membuat ALPHA sendiri tanpa kirim WA (inkonsisten)
 Ganti JWT_SECRET dengan string kuat
 Tambah auth ke 3 endpoint yang terbuka
 Buat middleware.ts terpusat
+
+Menggunakan skill 007 untuk melakukan audit keamanan (hardening & threat modeling) menyeluruh sebelum proses deployment akhir (produksi).
+
+1. Resumo Do Sistem
+Sistem Absensi SMK Ar Rahma (Next.js 16 + Tailwind v4 + Prisma ORM + MySQL). Lingkungan target produksi: cPanel Node.js Selector, serta replikasi lokal pada Windows Server + router MikroTik (HTTPS).
+
+2. Mapa De Ataque
+Entrada & Batasan Keamanan: Browser HP siswa (GPS/Camera) -> HTTPS -> Reverse Proxy (Nginx/Caddy) -> Port 3000 (Next.js).
+Aset Kritis:
+Kredensial Siswa (NISN) & Password.
+Token Sesi JWT (token cookie, HTTP-Only, Secure, SameSite).
+AES Key (AES_SECRET_KEY) untuk enkripsi Token QR TV lobi.
+Token Fonnte WA Gateway & SCHEDULER_SECRET harian.
+3. Vulnerabilidades Encontradas
+#	Severidade	Vulnerabilidade	Vetor	Impacto	Correcao	Status
+1	CRITICA	Spoofing/Bypass Sesi via Header HTTP	API routes membaca x-user-payload mentah dari request header yang bisa dipalsukan oleh penyerang jika tidak ditimpa oleh middleware.	Pengambilalihan sesi peran apa pun (termasuk Admin).	Kebijakan middleware dirubah memproteksi default seluruh rute dan selalu menimpa x-user-payload dengan token valid.	SUDAH DITERAPKAN
+2	TINGGI	Kebocoran API / Bypassing Auth Edge	jsonwebtoken rusak di Edge Runtime, menyebabkan verifikasi sesi lumpuh dan fallback tidak aman.	Pengguna sah terkunci dari dasbor atau tidak terotorisasi.	Mengganti verifikasi di Edge dengan Web Crypto API (verifyTokenEdge).	SUDAH DITERAPKAN
+3	TINGGI	Bypass DNS Lokal (Static DNS)	Siswa menyetel DNS eksternal (Google/Cloudflare) sehingga gagal resolve domain lokal absensi.local.	Aplikasi absen tidak dapat diakses di Wi-Fi sekolah.	DST-NAT Redirect port 53 (TCP/UDP) di MikroTik dipaksa ke DNS Lokal router.	SUDAH DOKUMENTASIKAN
+4	SEDANG	Denial of Service (DoS) Loop Repaint	Animasi pulse infinite dan transition-all SVG memicu repainting terus menerus di iOS Safari.	GPU thrashing, baterai habis cepat, layar flicker.

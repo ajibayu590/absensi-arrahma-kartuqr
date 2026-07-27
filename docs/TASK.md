@@ -278,6 +278,6 @@ Dokumen ini berisi daftar tugas pengerjaan (*checklist TODO*) yang dibagi ke dal
 | 2026-07-08 | Middleware Authentication Audit | Audit middleware `src/middleware.ts`. | Middleware otentikasi terpusat diimplementasikan dengan benar. Logika otentikasi, otorisasi, injeksi payload, dan konfigurasi `matcher` sudah sesuai. `api/attendance/live-stream` dikembalikan menjadi publik. | Selesai |
 | 2026-07-09 | Reset Password Siswa | Error `Cannot read properties of undefined (reading 'aktif')` ketika mereset password siswa. | Mengubah referensi `s.pengguna.aktif` menjadi `s.aktif` pada fungsi `handleResetPassword` di `students/page.tsx`. | Selesai |
 | 2026-07-12 | PWA Screen Rotation | PWA Android/Tablet tidak bisa dirotasi (terkunci portrait). | Menghapus properti `"orientation": "portrait"` dari `public/manifest.json` agar rotasi dinamis diizinkan. | Selesai |
-| 2026-07-12 | WebKit GPU Repaint Flicker | Dashboard berkedip/flicker di beberapa tablet/PWA iOS/Android. | Menghapus `animate-pulse` dari banner warning dan mempersempit cakupan `transition-all` menjadi `transition-[stroke-dashoffset]` pada donut chart bulat di `page.tsx` & `student/page.tsx` untuk mencegah GPU repaint loop di WebKit. | Selesai |
+| 2026-07-27 | Service Worker Cache | Redirect ke login tidak berjalan akibat cache SW pada navigasi. | Menghapus penanganan cache untuk request navigasi di `public/service-worker.js` untuk memaksa bypass cache pada navigasi halaman. | Selesai |
 
 

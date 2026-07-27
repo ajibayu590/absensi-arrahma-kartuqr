@@ -21,11 +21,10 @@ self.addEventListener('activate', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request).then(function(response) {
-      return response || fetch(event.request);
-    })
-  );
+  // Mode navigasi/redirect sering gagal jika diserahkan ke FetchEvent 
+  // Tanpa 'mode: manual' atau penanganan redirect eksplisit.
+  // Bypass total cache untuk navigasi untuk fix redirect.
+  event.respondWith(fetch(event.request));
 });
 
 self.addEventListener('push', function(event) {

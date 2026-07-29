@@ -1,35 +1,15 @@
 # Rencana Tugas Pengerjaan (Task Manager) — Sistem Absensi SMK Ar Rahma
 
-Dokumen ini berisi daftar tugas. **Bagian historis Fase 1–11** di bawah adalah arsip implementasi Next.js (selesai).  
-**Acuan kerja baru:** migrasi penuh Laravel di [`MIGRASI_LARAVEL.md`](MIGRASI_LARAVEL.md) + dokumentasi Laravel di `INDEX.md`.
+Dokumen ini berisi daftar tugas pengerjaan (*checklist TODO*) yang dibagi ke dalam fase dan sub-fase terstruktur untuk memantau progres koding sistem absensi Next.js.
 
 ---
 
-## 🎯 FASE MIGRASI LARAVEL (AKTIF)
-
-Ikuti checklist detail di [MIGRASI_LARAVEL.md](MIGRASI_LARAVEL.md):
-
-| Fase | Nama | Status |
-|------|------|--------|
-| 0 | Bootstrap Laravel + Inertia | Belum |
-| 1 | Migration Eloquent = DATABASE.md | Belum |
-| 2 | Auth & portal dasar | Belum |
-| 3 | Scan + TV + SSE + WA job | Belum |
-| 4 | Piket offline Dexie | Belum |
-| 5 | Laporan / BK / Kepsek | Belum |
-| 6 | Admin + lifecycle + import | Belum |
-| 7 | Scheduler, deploy, cutover | Belum |
-
-Dokumentasi target Laravel (PRD/SRS/SOP/API/…) **sudah disiapkan** 2026-07-29.
-
----
-
-## 📋 DAFTAR TUGAS UTAMA (ARSIP NEXT.JS — SELESAI)
+## 📋 DAFTAR TUGAS UTAMA
 
 ### FASE 1: INISIALISASI PROYEK & KONFIGURASI BASIS DATA
 *   **[x] Sub-Fase 1.1: Inisialisasi Proyek Next.js (Single Codebase)**
-    *   [x] Inisialisasi folder menggunakan `create-next-app` (TypeScript, Tailwind, ESLint, App Router).
-    *   [x] Instalasi dependensi tambahan: `prisma`, `@prisma/client`, `zustand`, `lucide-react`, `xlsx`, `date-fns`, `react-hot-toast`, `dexie`, `@react-pdf/renderer`, `bcrypt`, `jsonwebtoken`, `axios`, `qrcode`, `tsx`.
+    *   [x] Inisialisasi folder `/mnt/save/project/absensi/absensi_smk_ar_rahma` menggunakan `create-next-app` (TypeScript, Tailwind, ESLint, App Router).
+    *   [x] Instalasi dependensi tambahan: `prisma`, `@prisma/client`, `zustand`, `lucide-react`, `xlsx`, `date-fns`, `react-hot-toast`, `dexie` (IndexedDB), `@react-pdf/renderer`, `bcrypt`, `jsonwebtoken`, `axios`, `qrcode`, `tsx`.
 *   **[x] Sub-Fase 1.2: Konfigurasi Prisma ORM & Database MySQL**
     *   [x] Buat berkas `prisma/schema.prisma` menggunakan penamaan Bahasa Indonesia sesuai kamus data.
     *   [x] Jalankan `npx prisma validate` untuk memeriksa konseptual skema.
@@ -299,9 +279,5 @@ Dokumentasi target Laravel (PRD/SRS/SOP/API/…) **sudah disiapkan** 2026-07-29.
 | 2026-07-09 | Reset Password Siswa | Error `Cannot read properties of undefined (reading 'aktif')` ketika mereset password siswa. | Mengubah referensi `s.pengguna.aktif` menjadi `s.aktif` pada fungsi `handleResetPassword` di `students/page.tsx`. | Selesai |
 | 2026-07-12 | PWA Screen Rotation | PWA Android/Tablet tidak bisa dirotasi (terkunci portrait). | Menghapus properti `"orientation": "portrait"` dari `public/manifest.json` agar rotasi dinamis diizinkan. | Selesai |
 | 2026-07-27 | Service Worker Cache | Redirect ke login tidak berjalan akibat cache SW pada navigasi. | Menghapus penanganan cache untuk request navigasi di `public/service-worker.js` untuk memaksa bypass cache pada navigasi halaman. | Selesai |
-| 2026-07-29 | Dokumentasi Lengkap | PRD duplikatif, belum ada SRS/API/FITUR/SYSTEM_MAP; DATABASE belum mencakup `JadwalPiket` & `DispensasiKeterlambatan`; INDEX/AGENTS belum menautkan graphify. | Merapikan PRD v3.11; menambah SRS, API, FITUR, SYSTEM_MAP dari `graphify-out/graph.json`; update DATABASE/INDEX/AGENTS/KEPALA_SEKOLAH/SISWA/GURU_PIKET. | Selesai |
-| 2026-07-29 | Dokumentasi → Laravel | Docs masih berorientasi Next.js; dibutuhkan acuan migrasi penuh agar Laravel berjalan normal. | Rewrite AGENTS/INDEX/PRD/SRS/SOP/ARSITEKTUR/API/FITUR/SYSTEM_MAP/DEPLOY*/README + tambah MIGRASI_LARAVEL.md mengikuti fitur & skema proyek ini (bukan meniru branch lain). | Selesai |
-| 2026-07-29 | Docs WhatsApp OpenWA | Dokumentasi Laravel belum menjelaskan OpenWA, cara dapat token, `wa_gateway_url`, deteksi session, dan antrean kirim. | Tambah `docs/WHATSAPP.md`; tautkan ke INDEX/AGENTS/API/ARSITEKTUR/DATABASE/ADMIN/PRD/MIGRASI/README. | Selesai |
-| 2026-07-29 | Audit paritas kode vs dokumentasi | Audit menyeluruh menemukan 20 gap: broadcast WA sebenarnya Admin/Kepsek-only & global (bukan Wali Kelas per-kelas), toleransi token QR aktual +60s/-2s (bukan 10s), kunci AES QR diturunkan dari `JWT_SECRET` (bukan secret terpisah), validasi nomor WA tidak sesuai kode, EWS BK hanya 2 kriteria bulanan (bukan semester+mingguan), `SCHEDULER_SECRET` punya fallback hardcoded, `token-qr` butuh sesi (bukan publik), 3 jalur trigger auto-alpha paralel, PDF client vs server-side split, dan lainnya. | Tambah `docs/CATATAN_PARITAS.md` sebagai daftar keputusan konsolidasi; perbaiki klaim salah langsung di SISWA/WALI_KELAS/GURU_BK/GURU_PIKET/ADMIN/API/ARSITEKTUR/SOP/DATABASE/WHATSAPP.md. | Selesai |
 
 

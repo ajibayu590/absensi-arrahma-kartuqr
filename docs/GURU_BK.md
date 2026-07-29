@@ -22,23 +22,11 @@ graph TD
 ## 2. Rincian Kebutuhan Fungsional & Teknis
 
 ### 2.1 F-DASH-BK-01: Algoritma & Logika Early Warning System (EWS)
-
-> **⚠️ Implementasi nyata lebih sederhana dari desain awal.** Endpoint `GET /api/bk/ews` **hanya** mengevaluasi 2 kriteria, dalam window **bulan kalender berjalan** (1 s.d. akhir bulan ini, bukan semester):
-> 1. **`maxConsecutiveAlpha >= 3`** — Alpha 3 hari berturut-turut (dihitung ulang dari 0 setiap kali ada status non-Alpha di antaranya) dalam bulan berjalan.
-> 2. **`totalTerlambat > 5`** — total Terlambat lebih dari 5 kali dalam bulan berjalan.
->
-> Kriteria berikut **disebut di desain awal tapi TIDAK ada implementasinya** di kode saat ini:
-> * Akumulasi Alpha ≥ 5 hari per **semester** (kode hanya cek per bulan berjalan, bukan semester).
-> * Kriteria mingguan "terlambat ≥ 3 kali dalam Senin–Jumat berjalan" (F-DASH-BK-05) — tidak ada query window mingguan di kode.
->
-> **Keputusan migrasi**: bangun ulang `EwsService` Laravel mengikuti 2 kriteria bulanan di atas (parity apa adanya), **atau** implementasikan kriteria semester + mingguan sebagai perbaikan produk baru — butuh persetujuan eksplisit karena menambah scope. Lihat [CATATAN_PARITAS.md](CATATAN_PARITAS.md).
-
-*   **Logika Peringatan Dini EWS (sesuai kode nyata)**:
-    *   Sistem memindai data absensi seluruh siswa aktif pada rentang **1 s.d. akhir bulan kalender berjalan** setiap kali halaman/endpoint EWS diakses (bukan cron terjadwal terpisah).
-    *   **Kriteria Rawan Alpha**: Siswa dengan `StatusKehadiran = ALPHA` sebanyak **3 hari berturut-turut** dalam bulan berjalan.
-    *   **Kriteria Rawan Terlambat**: Siswa dengan `StatusKehadiran = TERLAMBAT` sebanyak **lebih dari 5 kali** (`> 5`, bukan `>= 5`) dalam bulan berjalan.
-    *   Siswa bisa memenuhi kedua kriteria sekaligus; `ewsReason` menggabungkan keduanya dengan `" & "`.
-    *   Hak akses: `ADMIN`, `KEPALA_SEKOLAH`, atau `GURU` dengan `Guru.isBk = true` (dicek via query relasi, bukan klaim role token).
+*   **Logika Peringatan Dini EWS**:
+    *   Setiap hari sistem backend Next.js memproses kueri otomatis untuk memindai data absensi siswa yang melanggar batas kedisiplinan sekolah.
+    *   **Kriteria Rawan Alpha (SP 1 / Panggilan 1)**: Siswa yang berstatus `StatusKehadiran = ALPHA` sebanyak **3 hari berturut-turut** atau total akumulasi Alpha $\ge 5$ hari dalam satu semester berjalan.
+    *   **Kriteria Rawan Terlambat**: Siswa yang terlambat masuk sekolah (`StatusKehadiran = TERLAMBAT`) sebanyak **> 5 kali** dalam satu bulan berjalan.
+    *   **Kriteria Akumulatif Mingguan (F-DASH-BK-05)**: Siswa yang terdata terlambat $\ge 3$ kali dalam kurun waktu satu minggu berjalan (Senin-Jumat).
 *   **Penyajian UI/UX EWS**:
     *   Daftar siswa bermasalah ditampilkan di tabel paling atas dashboard BK dengan baris berwarna merah pudar untuk siswa rawan SP dan kuning untuk siswa rawan keterlambatan akumulatif.
     *   Tabel menampilkan kolom: Nama Siswa, Kelas, Wali Kelas, Kategori Pelanggaran (e.g. "Alpha 3 Hari Berturut-turut"), dan Aksi Cepat (`[Tinjau Profil]`, `[Cetak Surat Panggilan]`).

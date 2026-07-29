@@ -14,8 +14,8 @@ sequenceDiagram
     actor Siswa
     participant HP as Portal Siswa (HP)
     participant TV as Layar TV Kantor (/display-qr)
-    participant Server as Server Laravel (API)
-    participant DB as Database MySQL (Eloquent)
+    participant Server as Server Next.js (API)
+    participant DB as Database MySQL (Prisma)
     participant WA as WhatsApp API (Fonnte)
     actor Ortu as Orang Tua Siswa
 
@@ -64,8 +64,8 @@ Sistem cron-job memicu penandaan status Alpha massal dan pengiriman laporan hari
 sequenceDiagram
     autonumber
     participant Cron as Server Cron Job (07:15)
-    participant Server as Server Laravel (API)
-    participant DB as Database MySQL (Eloquent)
+    participant Server as Server Next.js (API)
+    participant DB as Database MySQL (Prisma)
     participant WA as WhatsApp API (Fonnte)
     actor Ortu as Orang Tua Siswa Alpha
     actor Wali as Wali Kelas
@@ -118,8 +118,8 @@ sequenceDiagram
     autonumber
     actor Siswa
     participant HP as HP Siswa (Browser)
-    participant Server as Server Laravel (API)
-    participant DB as Database MySQL (Eloquent)
+    participant Server as Server Next.js (API)
+    participant DB as Database MySQL (Prisma)
 
     Siswa->>HP: Masukkan NISN & Kata Sandi
     HP->>HP: Generate Sidik Jari Perangkat (sidikJariBrowser)
@@ -138,7 +138,7 @@ sequenceDiagram
         else Akun Tidak Diblokir
             alt sidikJariBrowser kosong ATAU sidikJariBrowser sama
                 Server->>DB: Simpan sidikJariBrowser jika kosong
-                Server-->>HP: HTTP 200 OK (Sesi Aktif - Simpan Session Cookie HTTP-Only)
+                Server-->>HP: HTTP 200 OK (Sesi Aktif - Simpan JWT Cookies HTTP-Only)
             else sidikJariBrowser berbeda (Login di HP Baru saat Sesi Lama Aktif)
                 Server->>DB: Set cookie sesi lama hangus & simpan sidikJariBrowser baru
                 Server->>DB: Set kolom absenDiblokirHingga = Waktu Sekarang + 5 Menit
@@ -162,8 +162,8 @@ sequenceDiagram
     actor Guru as Guru Piket
     participant Web as Dashboard Piket (Browser)
     participant Local as Browser IndexedDB Cache
-    participant Server as Server Laravel (API)
-    participant DB as Database MySQL (Eloquent)
+    participant Server as Server Next.js (API)
+    participant DB as Database MySQL (Prisma)
 
     Note over Web: Menampilkan daftar siswa sekolah dari cache lokal
     Guru->>Web: Cari Siswa "Budi" & Klik Tombol [Hadir]
@@ -205,8 +205,8 @@ sequenceDiagram
     autonumber
     actor Admin
     participant Web as Dashboard Admin
-    participant Server as Server Laravel (API)
-    participant DB as Database MySQL (Eloquent)
+    participant Server as Server Next.js (API)
+    participant DB as Database MySQL (Prisma)
 
     Admin->>Web: Klik Tombol "Unduh Backup Database (.sql)"
     Web->>Server: HTTP GET /api/admin/backup-db

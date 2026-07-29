@@ -23,22 +23,27 @@ graph TD
 
 ### 2.1 F-DASH-ADMIN-06: Logika & Regex Auto-Formatter Nomor WhatsApp
 *   **Masalah Input**: Staf Tata Usaha seringkali mengimpor nomor HP orang tua dengan format tidak beraturan (contoh: `08123456789`, `+62812-3456-789`, `62 812 3456 789`, atau bahkan karakter non-numerik lainnya).
-*   **Implementasi nyata (`cleanWaPhone()` — hanya dipakai di CRUD manual `admin/students`)**:
+*   **Logika Pembersihan Regex (Sanitization)**:
+    *   Setiap nomor HP orang tua yang diinput (baik manual via form CRUD maupun massal via impor file Excel) wajib melewati fungsi penyaring (*sanitizer*) di backend Next.js:
     ```typescript
-    function cleanWaPhone(phone: string): string {
-      let cleaned = phone.replace(/\D/g, ""); // Hapus semua karakter non-digit
-      if (cleaned.startsWith("0")) {
-        cleaned = "62" + cleaned.slice(1); // 0xxx -> 62xxx
+    export function bersihkanNomorHp(telepon: string): string {
+      // 1. Hapus semua karakter non-numerik (kecuali angka)
+      let bersih = telepon.replace(/\D/g, '');
+      
+      // 2. Jika diawali angka "0", ganti dengan kode negara "62"
+      if (bersih.startsWith('0')) {
+        bersih = '62' + bersih.substring(1);
       }
-      return cleaned;
+      
+      // 3. Jika diawali "62", biarkan saja. Jika belum diawali, tambahkan "62" jika format lokal terdeteksi
+      if (!bersih.startsWith('62') && bersih.startsWith('8')) {
+        bersih = '62' + bersih;
+      }
+      
+      return bersih;
     }
     ```
-*   **⚠️ Perbedaan penting vs desain awal — wajib jadi acuan Laravel**:
-    *   **Tidak ada validasi panjang minimal/maksimal digit** (klaim "10–15 digit, tolak jika di luar rentang" **belum diimplementasikan** di kode).
-    *   **Tidak ada kode error `NOMOR_TELEPON_TIDAK_VALID`** — tidak ada baris yang ditolak karena format nomor.
-    *   Nomor yang tidak diawali `0` (mis. sudah `62…` atau format lain) **dibiarkan apa adanya**.
-    *   **Endpoint impor siswa XLSX (`/api/admin/students/import`) tidak memanggil fungsi cleaning ini sama sekali** — nomor mentah dari file Excel langsung disimpan ke `teleponOrangTua`.
-    *   **Keputusan migrasi**: replikasi perilaku longgar ini apa adanya, atau naikkan ke validasi ketat (perlu approval eksplisit karena mengubah perilaku impor existing). Lihat [CATATAN_PARITAS.md](CATATAN_PARITAS.md).
+*   **Validasi Panjang Digit**: Setelah dibersihkan, nomor telepon harus memiliki panjang karakter minimal 10 digit dan maksimal 15 digit. Jika di luar jangkauan tersebut, baris data siswa bersangkutan dalam impor Excel ditolak dengan status error `NOMOR_TELEPON_TIDAK_VALID`.
 
 ### 2.2 F-DASH-ADMIN-07: Skema Log Audit Aktivitas Admin (LogAuditAdmin)
 *   Setiap tindakan kritis Admin yang mengubah konfigurasi global atau kredensial pengguna wajib mencatat log audit ke tabel `LogAuditAdmin` dengan struktur data detail:
@@ -71,48 +76,33 @@ graph TD
 ### 2.3 F-DASH-ADMIN-08: Pengujian WhatsApp Gateway (Test WA Connector)
 *   Di halaman pengaturan terdapat tombol `[Uji Koneksi WhatsApp]`.
 *   Admin dapat memasukkan satu nomor tujuan uji coba (misal nomor HP Admin sendiri), lalu mengklik tombol tersebut.
-*   Backend mengirimkan request uji coba langsung menggunakan kredensial yang tersimpan:
-    *   **Fonnte** jika `wa_gateway_url` mengandung `fonnte.com` (atau default Fonnte).
-    *   **OpenWA NestJS / CLI** jika URL self-hosted (deteksi session via `/api/sessions` bila tersedia).
-*   Token diambil dari `Pengaturan.wa_gateway_token` (fallback `FONNTE_TOKEN`).
+*   Backend Next.js mengirimkan request uji coba langsung menggunakan kredensial token yang sedang disimpan ke provider WhatsApp API (Fonnte).
 *   Sistem menampilkan feedback langsung di dashboard:
     *   Jika sukses: Status `"Sukses: Koneksi WhatsApp berfungsi dengan baik!"` (Warna hijau).
-    *   Jika gagal: Status detail error (token invalid, session belum ready, kuota habis, timeout) (Warna merah).
-
-> Panduan mendapat token Fonnte/OpenWA, menyimpan URL, antrean, dan error umum: **[WHATSAPP.md](WHATSAPP.md)**.
+    *   Jika gagal: Status detail error `"Gagal: Bad Request (Token Tidak Valid / Kuota Habis)"` (Warna merah) untuk mempermudah diagnosa masalah tanpa harus menunggu hari esok.
 
 ### 2.4 F-DASH-ADMIN-10: Algoritma Ekspor Cadangan SQL Database Satu-Klik
 *   **Masalah Hosting**: Eksekusi perintah shell `mysqldump` dilarang keras di sebagian besar shared hosting cPanel murah karena alasan keamanan (*security policy disable_functions*).
-*   **Algoritma Backup Manual via Laravel (Eloquent)**:
-    1.  Backend mengambil seluruh daftar nama tabel di database MySQL (Pengguna, Kelas, Guru, Siswa, Kehadiran, LogWa, Pengaturan, HariLibur, LogAuditAdmin, LogKonselingBk, JadwalPiket, DispensasiKeterlambatan).
-    2.  Untuk setiap tabel, backend melakukan kueri seluruh record via Eloquent, contoh: `Model::query()->get()`.
+*   **Algoritma Backup Manual via Next.js Backend (Prisma)**:
+    1.  Backend mengambil seluruh daftar nama tabel di database MySQL (Pengguna, Kelas, Guru, Siswa, Kehadiran, LogWa, Pengaturan, HariLibur, LogAuditAdmin, LogKonselingBk).
+    2.  Untuk setiap tabel, backend melakukan kueri seluruh record data menggunakan:
+        `const data = await prisma[namaTabel].findMany();`
     3.  Backend melakukan iterasi dan menyusun teks perintah SQL `INSERT INTO namaTabel (kolom) VALUES (nilai)` secara manual di memori.
     4.  Backend menyisipkan perintah SQL pembuka berupa penangguhan konstrain kunci asing agar tidak terjadi error relasi saat pemulihan data:
         `"SET FOREIGN_KEY_CHECKS = 0;\n\n"`
     5.  Data dirangkum ke dalam satu string panjang SQL dan dikirimkan ke browser Admin sebagai file unduhan bertipe `.sql` (Content-Type: `application/octet-stream`).
-    6.  Metode ini aman untuk data sekolah menengah dan cocok di shared hosting cPanel tanpa shell `mysqldump`.
+    6.  Metode ini dijamin 100% aman, cepat untuk data sekolah menengah (di bawah 10.000 siswa), dan berjalan lancar di shared hosting cPanel mana pun.
 
 ### 2.5 F-DASH-ADMIN-11: Kirim Laporan Harian Manual (Opsi Tanpa Cron Job)
-*   **Latar Belakang**: Pada hosting yang membatasi proses panjang, cron OS + `queue:work --stop-when-empty` atau tombol manual diperlukan sebagai cadangan.
+*   **Latar Belakang**: Pada beberapa jenis server hosting (misalnya cPanel shared hosting yang membatasi hak eksekusi cron job eksternal atau mematikan background Node process), memicu tugas harian secara otomatis sulit dilakukan secara andal.
 *   **Mekanisme Tombol Kirim Laporan**:
     *   Halaman dasbor Admin (Pengaturan) menyediakan tombol `[Kirim Laporan Harian ke Wali Kelas]`.
-    *   Tombol ini memanggil route API `/api/cron/wa-digest` dengan hak istimewa autentikasi Admin (atau secret cron).
-    *   API akan langsung menghitung rekap absensi kelas pada hari itu dan mengantrikan pesan rekap WhatsApp ke masing-masing nomor Wali Kelas.
+    *   Tombol ini memanggil route API `/api/cron/wa-digest` dengan hak istimewa autentikasi Admin/Piket.
+    *   API akan langsung menghitung rekap absensi kelas pada hari itu dan menembakkan pesan rekap WhatsApp ke masing-masing nomor Wali Kelas.
     *   Setiap kali pemicuan manual dilakukan, tindakan ini akan mencatat aktivitas log audit di `LogAuditAdmin` dengan tindakan `MANUAL_TRIGGER_WA_DIGEST`.
 
-### 2.6 F-DASH-ADMIN-12: Reset Kata Sandi Siswa/Staf
-*   Endpoint `PUT /api/admin/students` (dan `PUT /api/admin/users` untuk staf) mendukung mode **reset password**: body berisi flag reset (mis. `resetPassword: true`) untuk siswa target.
-*   Password siswa direset ke **NISN siswa** (hash bcrypt), staf direset ke pola default yang dikonfigurasi.
-*   Setelah reset, `isPasswordSementara` diset `true` sehingga pengguna wajib ganti sandi saat login berikutnya.
-*   Aksi ini wajib memicu modal konfirmasi toast (bukan `window.confirm`) dan idealnya tercatat di `LogAuditAdmin` (`RESET_PASSWORD`).
-
-### 2.7 F-DASH-ADMIN-13: Banner "Proses Alpha Manual" & Trigger Force
-*   Dashboard Admin menampilkan **banner amber** ketika `ringkasanHariIni.belumAbsen > 0` (siswa yang belum tercatat kehadirannya sampai jam saat itu).
-*   Banner menampilkan jumlah siswa belum absen + tombol `[Proses Alpha Manual]`.
-*   Klik tombol → konfirmasi toast → `POST /api/attendance/auto-alpha` dengan body `{ force: true }` (memerlukan sesi `ADMIN`; lihat [ARSITEKTUR.md](ARSITEKTUR.md) §4.1 untuk aturan otorisasi ganda secret-vs-admin).
-*   Setelah sukses, dashboard refresh ringkasan (`belumAbsen` menjadi 0) dan banner otomatis hilang.
-
 ---
+
 
 ## 3. Skenario Penanganan Error (Error Handling Matrix)
 

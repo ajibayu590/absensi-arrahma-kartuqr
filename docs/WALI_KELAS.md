@@ -64,11 +64,25 @@ graph TD
     *   Laporan PDF harian atau rekap bulanan di-generate menggunakan pustaka `@react-pdf/renderer` dengan tata letak rapi, logo resmi SMK Ar Rahma di header, tabel bergaris bersih, dan area tanda tangan Wali Kelas di pojok kanan bawah.
 
 ### 2.5 F-DASH-WALI-08: Custom WhatsApp Broadcast Massal
-*   **Mekanisme Broadcast Massal**:
+
+> **⚠️ GAP IMPLEMENTASI — baca sebelum porting ke Laravel.**  
+> Desain awal fitur ini adalah broadcast **milik Wali Kelas, terbatas ke kelasnya sendiri**. Namun endpoint aktual `POST /api/dashboard/broadcast`:
+> * Hanya mengizinkan role **`ADMIN`** atau **`KEPALA_SEKOLAH`** (`payload.peran === "ADMIN" || "KEPALA_SEKOLAH"`) — Wali Kelas (`GURU` + `kelasWali`) **ditolak 403** jika mencoba memanggilnya.
+> * `targetClassId` **selalu di-set `null`** dalam kode (komentar eksplisit: "Admin/Kepala Sekolah mengirim secara global") — **tidak ada filter per-kelas** sama sekali, walau parameter tersebut ada di kode.
+> * UI tombol broadcast di dashboard (`src/app/(dashboard)/page.tsx`) juga **hanya dirender untuk role Admin/Kepala Sekolah**.
+>
+> **Keputusan yang harus diambil sebelum implementasi Laravel** (lihat [CATATAN_PARITAS.md](CATATAN_PARITAS.md) untuk daftar lengkap):
+> 1. **Ikuti kode nyata** — broadcast tetap fitur Admin/Kepsek saja, bersifat sekolah-wide (bukan per kelas). Update PRD/SRS/FITUR agar konsisten, dan pertimbangkan mengganti judul fitur di UI Wali Kelas.
+> 2. **Implementasikan desain awal** — buka akses ke Wali Kelas dan terapkan `targetClassId = idKelasWali` sebagai perbaikan produk baru (bukan sekadar migrasi 1:1) — butuh persetujuan eksplisit karena ini penambahan scope, bukan replikasi.
+>
+> Deskripsi UI di bawah ini adalah **desain yang dimaksud/diharapkan**; tandai sebagai "belum terwujud di kode existing" sampai keputusan di atas diambil.
+
+*   **Mekanisme Broadcast Massal (desain yang dimaksud)**:
     *   Tombol `"Custom WA Broadcast"` membuka modal pop-up berisi area input teks (*textarea*) kosong.
     *   Wali Kelas dapat mengetikkan pesan pengumuman/himbauan khusus kelasnya (misal: pengumuman libur dadakan, classmeeting, atau rapat wali murid).
-    *   Terdapat checkbox pilihan target: `[ ] Semua Orang Tua`, `[ ] Hanya Orang Tua Siswa Terlambat Hari Ini`, `[ ] Hanya Orang Tua Siswa Alpha Hari Ini`.
-    *   Setelah tombol `[Kirim Broadcast]` ditekan, backend Next.js memasukkan pesan-pesan tersebut ke dalam antrean pengiriman WhatsApp dengan jeda delay acak untuk memproses pengiriman satu per satu secara asinkron.
+    *   Terdapat checkbox pilihan target: `[ ] Semua Orang Tua`, `[ ] Hanya Orang Tua Siswa Terlambat Hari Ini`, `[ ] Hanya Orang Tua Siswa Alpha Hari Ini`. (Kode nyata mendukung kategori `SEMUA`/`TERLAMBAT`/`ALPHA` via parameter `kategori`, tapi **tanpa** filter kelas.)
+    *   Setelah tombol `[Kirim Broadcast]` ditekan, backend memasukkan pesan-pesan tersebut ke dalam antrean pengiriman WhatsApp (`LogWa` status `TERTUNDA` → `kirimWaDenganAntrean`) dengan jeda delay acak untuk memproses pengiriman satu per satu secara asinkron.
+    *   Template variabel dinamis yang **benar-benar didukung** di pesan: `{Nama_Siswa}` dan `{Nama_Kelas}` (bukan hanya per-siswa individual).
 
 ---
 

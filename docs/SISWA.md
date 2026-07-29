@@ -10,17 +10,17 @@ Dokumen ini berisi spesifikasi fungsional, arsitektur antarmuka, penanganan erro
 sequenceDiagram
     autonumber
     Siswa->>Browser HP: Buka Aplikasi & Input NISN/Sandi
-    Browser HP->>Backend Next.js: Kirim Kredensial & Sidik Jari Browser
-    Backend Next.js->>Database MySQL: Verifikasi Akun & Sesi Aktif
-    Database MySQL-->>Backend Next.js: Pengguna Valid (Sesi Tunggal Terjaga)
-    Backend Next.js-->>Browser HP: Sesi Aktif (JWT Cookie HTTP-Only)
+    Browser HP->>Backend Laravel: Kirim Kredensial & Sidik Jari Browser
+    Backend Laravel->>Database MySQL: Verifikasi Akun & Sesi Aktif
+    Database MySQL-->>Backend Laravel: Pengguna Valid (Sesi Tunggal Terjaga)
+    Backend Laravel-->>Browser HP: Sesi Aktif (Session Cookie HTTP-Only)
     Siswa->>Browser HP: Klik "Scan Absensi"
     Browser HP->>Browser HP: Minta Izin Kamera & Lokasi GPS
     Browser HP->>Browser HP: Pindai QR Code TV & Baca Lokasi GPS
-    Browser HP->>Backend Next.js: Kirim Koordinat GPS & Token QR Terenkripsi
-    Backend Next.js->>Backend Next.js: Validasi Jarak Geofencing (Haversine) & Timestamp Token
-    Backend Next.js->>Database MySQL: Rekam Absensi Kehadiran & Kirim Notif WA
-    Backend Next.js-->>Browser HP: Respons Sukses (Audio Bip + Getar HP + Centang Hijau)
+    Browser HP->>Backend Laravel: Kirim Koordinat GPS & Token QR Terenkripsi
+    Backend Laravel->>Backend Laravel: Validasi Jarak Geofencing (Haversine) & Timestamp Token
+    Backend Laravel->>Database MySQL: Rekam Absensi Kehadiran & Kirim Notif WA
+    Backend Laravel-->>Browser HP: Respons Sukses (Audio Bip + Getar HP + Centang Hijau)
 ```
 
 ---
@@ -32,7 +32,7 @@ sequenceDiagram
 *   **Enforcement Sesi Tunggal**:
     *   Setiap kali siswa berhasil login, backend mencocokkan `sidikJariBrowser` yang dikirim dengan data yang tersimpan di kolom `sidikJariBrowser` tabel `Pengguna`.
     *   Jika `sidikJariBrowser` di database kosong, sistem akan menyimpannya secara otomatis.
-    *   Jika `sidikJariBrowser` berbeda dengan yang tersimpan, sistem akan menghapus sesi lama di perangkat lain (*force logout*) dengan membatalkan JWT token lama, menyimpan sidik jari baru, dan memblokir sementara akun tersebut untuk melakukan pemindaian selama **5 menit** (`absenDiblokirHingga = Waktu_Sekarang + 5 Menit`).
+    *   Jika `sidikJariBrowser` berbeda dengan yang tersimpan, sistem akan menghapus sesi lama di perangkat lain (*force logout*) dengan membatalkan sesi lama, menyimpan sidik jari baru, dan memblokir sementara akun tersebut untuk melakukan pemindaian selama **5 menit** (`absenDiblokirHingga = Waktu_Sekarang + 5 Menit`).
 *   **Validasi Sandi Sementara**:
     *   Akun baru siswa yang diimpor dari data TU memiliki kolom `isPasswordTemp: true`.
     *   Saat login pertama kali, siswa secara otomatis diarahkan ke halaman `/ubah-sandi` dan tidak bisa mengakses portal scan sebelum mengubah kata sandi default-nya.
@@ -55,13 +55,15 @@ sequenceDiagram
 ### 2.4 F-SISWA-04: Validasi Geofencing & Token QR
 *   **Perhitungan Geofencing (Formula Haversine)**:
     *   Aplikasi mengambil koordinat GPS perangkat siswa via browser `navigator.geolocation.getCurrentPosition` dengan akurasi tinggi (`enableHighAccuracy: true`, `timeout: 5000`, `maximumAge: 0`).
-    *   Sinyal koordinat lintang/bujur dikirim ke backend Next.js bersama token hasil pemindaian.
+    *   Sinyal koordinat lintang/bujur dikirim ke backend Laravel bersama token hasil pemindaian.
     *   Backend melakukan komputasi formula Haversine untuk menghitung jarak spasial riil siswa ke koordinat sekolah (`gps_sekolah_latitude`, `gps_sekolah_longitude`) yang diambil dari tabel `Pengaturan`.
     *   Jika hasil jarak melebihi batas radius toleransi sekolah (default: 50 meter), backend mengembalikan kode error `JARAK_TERLALU_JAUH`.
-*   **Validasi Token QR Dinamis**:
-    *   Token QR Code di-generate di TV display gerbang berisi string JSON terenkripsi (AES-256-CBC) dengan isi data: `{ target: "absensi_smk_ar_rahma", timestamp: 1717454800000, rand: "xyz" }`.
-    *   Backend mendekripsi token tersebut dan mencocokkan `timestamp` di dalam token dengan waktu server Next.js saat itu (`Date.now()`).
-    *   Jika selisih waktu `Date.now() - timestamp > 10000` (lebih dari 10 detik), backend mengembalikan kode error `TOKEN_KADALUWARSA`.
+*   **Validasi Token QR Dinamis (nilai toleransi implementasi nyata)**:
+    *   Token QR Code di-generate di TV display gerbang berisi payload terenkripsi (AES-256-CBC) format ringkas `SMK:{timestamp}:{rand}` (setara `{ target: "absensi_smk_ar_rahma", timestamp, rand }`).
+    *   Kunci AES **diturunkan dari `JWT_SECRET`** (`SHA-256(JWT_SECRET)` sebagai key 32-byte) — **bukan** secret terpisah. Lihat catatan di [ARSITEKTUR.md](ARSITEKTUR.md) §4.
+    *   Backend mendekripsi token dan menghitung `selisihWaktu = Date.now() - decrypted.timestamp`.
+    *   **Toleransi aktual: `selisihWaktu > 60000` (lebih dari 60 detik) ATAU `selisihWaktu < -2000` (client lebih cepat >2 detik dari server) → ditolak** dengan kode error `TOKEN_KADALUWARSA`.
+    *   Catatan: dokumen versi sebelumnya menyebut batas 10 detik — itu **tidak sesuai kode**; 60 detik adalah nilai yang harus dipakai sebagai acuan parity Laravel kecuali produk sengaja ingin memperketatnya (butuh keputusan eksplisit, lihat [MIGRASI_LARAVEL.md](MIGRASI_LARAVEL.md) §11).
 
 ### 2.5 F-SISWA-06: Feedback Audio & Haptic
 *   **Feedback Sukses**:
@@ -73,6 +75,19 @@ sequenceDiagram
     *   Memicu vibrasi fisik HP berupa getaran berdenyut ganda (`navigator.vibrate([100, 50, 100])`).
     *   Menampilkan tanda silang merah dengan keterangan error yang jelas.
 
+### 2.6 F-SISWA-07: Geofencing Kondisional (v3.10+)
+*   Portal membaca status `gps_geofencing_aktif` via `GET /api/settings/geofencing`.
+*   Jika **aktif**: minta izin lokasi, kirim lat/lon, backend validasi Haversine.
+*   Jika **nonaktif**: jangan paksa izin GPS; kirim `latitude`/`longitude` = `null`; UI menampilkan pesan bahwa GPS tidak diperlukan.
+*   Pesan error “Izin GPS Ditolak” hanya relevan saat geofencing aktif.
+
+### 2.7 F-SISWA-08: Dispensasi Keterlambatan
+*   Siswa dapat mengajukan dispensasi untuk tanggal tertentu: alasan wajib, foto bukti opsional (dikompresi di klien sebelum unggah).
+*   API: `POST /api/student/dispensation` (multipart form: `alasan`, `foto`), pantau status via `GET /api/student/dispensation`.
+*   Status: `MENUNGGU` → diputuskan Guru Piket/Admin menjadi `DISETUJUI` / `DITOLAK` (lihat [GURU_PIKET.md](GURU_PIKET.md)).
+*   Unique constraint: satu pengajuan per siswa per tanggal (`DispensasiKeterlambatan`).
+*   **Implementasi upload nyata (catatan migrasi)**: file ditulis langsung ke `public/uploads/disp-{siswaId}-{timestamp}.{ext}` di filesystem server — **tidak ada validasi tipe MIME atau ukuran file** di backend saat ini (hanya kompresi gambar di klien sebelum kirim, yang bisa dilewati). Untuk Laravel, putuskan: (a) replikasi longgar ini, atau (b) tambahkan validasi `image|max:...` + `Storage` disk sebagai perbaikan keamanan — lihat [CATATAN_PARITAS.md](CATATAN_PARITAS.md) #11.
+
 ---
 
 ## 3. Skenario Penanganan Error (Error Handling Matrix)
@@ -80,9 +95,10 @@ sequenceDiagram
 | Kondisi Error | Deteksi Sistem | Tindakan Sistem | Petunjuk Visual bagi Siswa |
 |---------------|----------------|-----------------|----------------------------|
 | **Izin Kamera Ditolak** | Exception ditangkap oleh `html5-qrcode` | Menampilkan overlay peringatan bertanda seru | "Izin Kamera Diblokir. Harap klik ikon gembok di sebelah kiri alamat website di browser Anda, ubah izin Kamera menjadi 'Izinkan', lalu refresh halaman." |
-| **Izin GPS Ditolak / Mati** | `error.code === error.PERMISSION_DENIED` pada API Geolocation | Menghentikan proses inisialisasi pemindaian | "Akses Lokasi Diblokir. Harap aktifkan GPS HP Anda dan beri izin lokasi pada browser untuk melanjutkan absensi." |
+| **Izin GPS Ditolak / Mati** (hanya jika geofencing aktif) | `error.code === error.PERMISSION_DENIED` pada API Geolocation | Menghentikan proses inisialisasi pemindaian | "Akses Lokasi Diblokir. Harap aktifkan GPS HP Anda dan beri izin lokasi pada browser untuk melanjutkan absensi." |
+| **Dispensasi dobel** | Unique `(idSiswa, tanggal)` | HTTP 409 | "Anda sudah mengajukan dispensasi untuk tanggal ini." |
 | **Siswa di Luar Radius** | Hasil perhitungan jarak Haversine $> 50$ meter | Mengembalikan respons error `JARAK_TERLALU_JAUH` | "Gagal Absen: Lokasi Anda terlalu jauh dari sekolah (Terdeteksi: X meter dari gerbang)." |
-| **Token QR Kedaluwarsa** | Selisih waktu timestamp token $> 10$ detik | Mengembalikan respons error `TOKEN_KADALUWARSA` | "Gagal Absen: Token QR kedaluwarsa. Harap scan kembali kode terbaru yang muncul di layar TV." |
+| **Token QR Kedaluwarsa** | Selisih waktu timestamp token $> 60$ detik (atau client $> 2$ detik lebih cepat dari server) | Mengembalikan respons error `TOKEN_KADALUWARSA` | "Gagal Absen: Token QR kedaluwarsa. Harap scan kembali kode terbaru yang muncul di layar TV." |
 | **Sesi Akun Diblokir** | Percobaan login ganda mendeteksi `Waktu_Sekarang < absenDiblokirHingga` | Menolak permintaan absensi di backend | "Akun Anda diblokir sementara selama 5 menit karena terdeteksi login sharing di perangkat lain." |
 
 ---

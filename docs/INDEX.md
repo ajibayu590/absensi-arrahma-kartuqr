@@ -1,67 +1,83 @@
-# Dokumentasi — Sistem Absensi Siswa SMK Ar Rahma
+# Dokumentasi — Sistem Absensi Siswa SMK Ar Rahma (Laravel)
 
-**Versi PRD:** 3.7 | **Versi SOP:** 2.3 | **Tanggal:** 2026-06-05
+**Versi PRD:** 3.11 | **Versi SRS:** 1.1 | **Stack target:** Laravel 12 + Inertia React | **Tanggal:** 2026-07-29
 
-Folder ini berisi seluruh dokumentasi proyek Sistem Absensi Siswa SMK Ar Rahma.
-File ini (`INDEX.md`) adalah **daftar isi utama** dan titik navigasi untuk semua dokumen.
+Folder ini adalah **sumber kebenaran dokumentasi** untuk migrasi penuh ke Laravel agar aplikasi berjalan normal (auth, absensi, WA, scheduler, deploy).
+
+> **Schema MySQL tidak berubah** (Bahasa Indonesia, 12 tabel). Yang berubah adalah runtime aplikasi: dari Next.js → **Laravel monolith + Inertia React**.
 
 ---
 
-## Dokumen Inti
+## Dokumen Inti (Wajib Baca)
 
 | Dokumen | Deskripsi |
 |---------|-----------|
-| [PRD.md](PRD.md) | Product Requirements Document v3.7 — Pernyataan masalah, kriteria sukses, aturan absensi, non-goals |
-| [SOP.md](SOP.md) | Standard Operating Procedure v2.3 — Skema Prisma, SSE broadcast, struktur folder |
-| [ARSITEKTUR.md](ARSITEKTUR.md) | Arsitektur sistem, tech stack, visual identity, keamanan |
-| [DATABASE.md](DATABASE.md) | Kamus data lengkap 10 tabel MySQL (Bahasa Indonesia), FK constraints, seeding |
-| [ALUR_KERJA.md](ALUR_KERJA.md) | 5 Diagram sekuens Mermaid (scan QR, cron alpha, fingerprint, offline, backup) |
+| [PRD.md](PRD.md) | Product Requirements v3.11 — fitur, non-goals, metrik |
+| [SRS.md](SRS.md) | Software Requirements — FR/NFR, aturan bisnis, acceptance |
+| [MIGRASI_LARAVEL.md](MIGRASI_LARAVEL.md) | Checklist migrasi penuh & kriteria “Laravel jalan normal” |
+| [CATATAN_PARITAS.md](CATATAN_PARITAS.md) | **Wajib baca** — gap kode-vs-dokumentasi lama & keputusan yang harus diambil sebelum coding |
+| [ARSITEKTUR.md](ARSITEKTUR.md) | Arsitektur Laravel + Inertia, keamanan, queue, scheduler |
+| [SOP.md](SOP.md) | SOP implementasi: folder, model, middleware, command |
+| [DATABASE.md](DATABASE.md) | Kamus data 12 tabel + catatan Eloquent |
+| [API.md](API.md) | Katalog endpoint `/api/*` (Laravel controllers) |
+| [WHATSAPP.md](WHATSAPP.md) | Fonnte & OpenWA: token, URL, kirim, antrean, uji koneksi |
+| [FITUR.md](FITUR.md) | Katalog fitur × role |
+| [SYSTEM_MAP.md](SYSTEM_MAP.md) | Peta modul Laravel (services, jobs, pages) |
+| [ALUR_KERJA.md](ALUR_KERJA.md) | Sequence diagram (scan, alpha, offline, backup) |
 
 ## Spesifikasi Fitur (Per Role)
 
-| Role | Dokumen | Deskripsi |
-|------|---------|-----------|
-| Siswa | [SISWA.md](SISWA.md) | Portal HP, QR scanner, geofencing GPS, browser fingerprint, audio/haptic feedback |
-| Guru Piket | [GURU_PIKET.md](GURU_PIKET.md) | Dashboard manual scan, IndexedDB offline cache, auto-sync |
-| Wali Kelas | [WALI_KELAS.md](WALI_KELAS.md) | Kalender grid GitHub-style, ekspor Excel/PDF, WA broadcast |
-| Guru BK | [GURU_BK.md](GURU_BK.md) | Early Warning System, Surat Panggilan PDF, log konseling rahasia |
-| Kepala Sekolah | [KEPALA_SEKOLAH.md](KEPALA_SEKOLAH.md) | Dashboard eksekutif, grafik tren, leaderboard disiplin |
-| Admin | [ADMIN.md](ADMIN.md) | CRUD master data, audit trail, backup SQL, lifecycle management |
+| Role | Dokumen |
+|------|---------|
+| Siswa | [SISWA.md](SISWA.md) |
+| Guru Piket | [GURU_PIKET.md](GURU_PIKET.md) |
+| Wali Kelas | [WALI_KELAS.md](WALI_KELAS.md) |
+| Guru BK | [GURU_BK.md](GURU_BK.md) |
+| Kepala Sekolah | [KEPALA_SEKOLAH.md](KEPALA_SEKOLAH.md) |
+| Admin | [ADMIN.md](ADMIN.md) |
 
-## Operasional & Pendukung
+## Operasional
 
 | Dokumen | Deskripsi |
 |---------|-----------|
-| [DEPLOY_LOKAL.md](DEPLOY_LOKAL.md) | Panduan instalasi perangkat lunak & prosedur deploy di komputer lokal |
-| [DEPLOY.md](DEPLOY.md) | Panduan deploy production di cPanel (Node.js Selector + Phusion Passenger) |
-| [TASK.md](TASK.md) | Checklist tugas per fase (8 fase + tambahan), log perbaikan bug |
-| [TECHNICAL.md](TECHNICAL.md) | Catatan teknikal: bug fix, fitur baru, kredensial, optimalisasi QR |
-| [RESEARCH.md](RESEARCH.md) | Riset pasar, JTBD, analisis kompetitor, SWOT, audit keamanan |
-| [QUESTIONS.md](QUESTIONS.md) | Pertanyaan klarifikasi & asumsi operasional awal proyek |
+| [DEPLOY_LOKAL.md](DEPLOY_LOKAL.md) | Setup lokal PHP 8.2+ / Composer / Node / MySQL |
+| [DEPLOY.md](DEPLOY.md) | Deploy production (cPanel PHP / VPS Nginx+PHP-FPM) |
+| [TASK.md](TASK.md) | Checklist & log perubahan |
+| [TECHNICAL.md](TECHNICAL.md) | Catatan teknikal migrasi |
+| [RESEARCH.md](RESEARCH.md) | Riset & SWOT |
+| [QUESTIONS.md](QUESTIONS.md) | Klarifikasi awal |
 
 ---
 
-## Struktur Proyek (Singkat)
+## Struktur Proyek Target (Laravel)
 
 ```
 absensi_smk_ar_rahma/
-├── AGENTS.md          ← Entry point universal untuk AI agent
-├── README.md          ← Overview & getting started
-├── docs/              ← SEMUA dokumentasi (folder ini)
-│   └── INDEX.md       ← Daftar isi ini
-├── prisma/            ← Schema Prisma & seed data
-├── src/               ← Source code Next.js
-│   ├── app/           ← App Router (pages, API routes)
-│   ├── components/    ← Komponen UI reusable
-│   └── lib/           ← Utility (prisma, auth, WA, SSE, dll)
-└── public/            ← Static assets (PWA, icon, offline.html)
+├── AGENTS.md
+├── README.md
+├── app/
+│   ├── Enums/                 ← Peran, StatusKehadiran, …
+│   ├── Models/                ← Pengguna, Siswa, Kehadiran, …
+│   ├── Http/Controllers/      ← Web (Inertia) + Api/
+│   ├── Http/Middleware/       ← EnsureRole, ForceChangeTemporaryPassword
+│   ├── Services/              ← QrToken, Geofence, WhatsApp, Sse, AutoAlpha
+│   ├── Jobs/                  ← KirimWaJob
+│   └── Console/Commands/      ← AbsensiAutoAlpha
+├── routes/web.php · api.php · console.php
+├── resources/js/              ← Inertia Pages (React) + Layouts + lib
+├── database/migrations/ · seeders/
+├── config/absensi.php
+├── public/                    ← document root + Vite build + PWA
+└── docs/                      ← dokumentasi (folder ini)
 ```
 
-## Cara Membaca untuk AI Agent
+## Cara Baca untuk AI / Developer Migrasi
 
-1. **Mulai dari `AGENTS.md`** di root project — berisi konteks singkat & pointer ke folder ini
-2. **Baca `INDEX.md`** ini untuk memahami peta dokumentasi
-3. **Baca `PRD.md`** untuk memahami kebutuhan produk secara menyeluruh
-4. **Baca `DATABASE.md`** untuk memahami skema data (semua tabel dalam Bahasa Indonesia)
-5. **Baca `ARSITEKTUR.md`** untuk memahami tech stack & keamanan
-6. **Baca fitur spesifik** sesuai role yang sedang dikerjakan
+1. `AGENTS.md` → stack & aturan  
+2. `INDEX.md` (ini)  
+3. `PRD.md` + `SRS.md` → apa yang harus ada  
+4. `MIGRASI_LARAVEL.md` → urutan kerja migrasi  
+5. `DATABASE.md` → migration Eloquent  
+6. `ARSITEKTUR.md` + `SOP.md` + `API.md` → cara implementasi  
+7. Spec role sesuai modul yang dikerjakan  
+8. Update `TASK.md` setiap fase selesai  

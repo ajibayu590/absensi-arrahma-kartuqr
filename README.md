@@ -1,121 +1,68 @@
-# 🏫 Sistem Absensi Siswa SMK Ar Rahma
+# Sistem Absensi Siswa SMK Ar Rahma
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2.7-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com/)
+[![Inertia](https://img.shields.io/badge/Inertia-React-9553E9?style=for-the-badge)](https://inertiajs.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Prisma ORM](https://img.shields.io/badge/Prisma_ORM-6.19-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
+[![Eloquent](https://img.shields.io/badge/Eloquent_ORM-MySQL-2D3748?style=for-the-badge)](https://laravel.com/docs/eloquent)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Fonnte WA](https://img.shields.io/badge/WA_Gateway-Fonnte-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://fonnte.com/)
 
-Sistem Absensi Siswa SMK Ar Rahma adalah aplikasi pengelolaan kehadiran (*attendance management system*) berbasis *single codebase* menggunakan **Next.js App Router**, **TypeScript**, dan **Tailwind CSS**. Sistem ini dilengkapi dengan penandaan lokasi GPS (Geofencing Haversine), enkripsi AES-256 putaran token QR TV lobi secara real-time via *Server-Sent Events (SSE)*, penyelamatan data *offline* dengan IndexedDB (Dexie.js), otomatisasi Notifikasi WhatsApp Gateway, serta generator dokumen rekap PDF & Excel otomatis.
+Sistem absensi siswa berbasis **QR Code + geofencing GPS**, notifikasi WhatsApp, dan dashboard RBAC multi-role.
+
+**Stack target (migrasi penuh):** Laravel 12 · Inertia.js · React · Vite · Tailwind CSS · Eloquent · MySQL/MariaDB · Fonnte · Queue & Scheduler.
+
+> Dokumentasi di [`docs/`](docs/INDEX.md) sudah ditulis untuk **Laravel** agar implementasi migrasi penuh berjalan normal. Schema database (Bahasa Indonesia) **tidak berubah**.
 
 ---
 
-## 📸 FITUR UTAMA SISTEM
+## Fitur utama
 
-### 1. 📱 Portal Mandiri Siswa (`/student`)
-* **Geofencing GPS**: Perhitungan rumus koordinat bumi Haversine di backend guna melarang pemindaian di luar area/radius sekolah (default: 50 meter).
-* **Single-Session Lock**: Mengunci peramban menggunakan sidik jari browser (`sidikJariBrowser`) untuk mencegah kecurangan/titip absen. Pelanggaran sesi ganda memicu pemblokiran otomatis presensi selama 5 menit.
-* **Haptic & Audio Feedback**: Mengintegrasikan suara bip audio bersih dan getaran perangkat (`navigator.vibrate`) untuk indikator instan sukses/gagal scan.
-* **Monthly Gauge Tracker**: Diagram lingkaran visual keaktifan absensi bulanan beserta riwayat kehadiran 7 hari terakhir.
-
-### 2. 📺 Layar QR TV Lobi Utama (`/display-qr`)
-* **AES-256 Encrypted Token**: Token QR terenkripsi dinamis berisi timestamp server yang otomatis kedaluwarsa dalam 10 detik.
-* **Live SSE Stream**: Server-Sent Events (SSE) yang memancarkan data kehadiran siswa secara langsung ke lobi TV.
-* **Modern TV Dashboard**: Layout premium dengan circular countdown timer 10 detik dan panel notifikasi melayang real-time.
-
-### 3. 💼 Dashboard Guru Piket (`/scan`)
-* **Pencarian Cepat & Satu-Klik**: Filter data siswa berdasarkan kelas dan input absensi manual (`Hadir`, `Terlambat`, `Izin`, `Sakit`) tanpa modal konfirmasi.
-* **IndexedDB Offline Caching**: Penyelamatan data lokal menggunakan `Dexie.js` saat koneksi internet terputus. Data ditandai `PENDING_SYNC`.
-* **Auto Sync API**: Background scheduler yang mendeteksi jaringan kembali online dan mengirim data absensi tertunda ke server secara massal (`/api/attendance/bulk-sync`).
-
-### 4. 🗂️ Dashboard Wali Kelas & Notifikasi WA (`/reports`)
-* **GitHub-Style Calendar Grid**: Grid peta kehadiran bulanan interaktif berkode warna status presensi (Hijau, Kuning, Merah, Biru, Abu-abu).
-* **Slide-over Panel**: Edit cepat kehadiran dengan mengklik sel tanggal kalender.
-* **WhatsApp Random Queue Delay**: Antrean asinkronus notifikasi absensi wali murid dengan jeda delay acak untuk mematuhi aturan anti-spam.
-* **Ekspor Laporan**: Unduh laporan rekap kehadiran bulanan ke berkas **Excel Berwarna** (conditional formatting) dan **PDF Cetak A4**.
-
-### 5. ⚖️ Dashboard Guru BK & Early Warning System (EWS) (`/bk`)
-* **EWS Engine**: Otomatis mendeteksi siswa rawan dengan kriteria ketat: Alpha $\ge 3$ hari berturut-turut atau Terlambat $>5$ kali dalam sebulan.
-* **Official PDF SP Generator**: Cetak Surat Panggilan Orang Tua resmi bertingkat (SP 1, SP 2, SP 3) dengan kop surat yayasan, detail pelanggaran, jadwal bimbingan konseling, dan kolom tanda tangan.
-* **Log Konseling BK**: Pengarsipan catatan bimbingan konseling rahasia dengan pembatasan hak akses (hanya BK & Admin yang dapat menulis/mengedit).
-
-### 6. ⚙️ Pengaturan Admin & cPanel Utilities (`/settings`)
-* **Lifecycle Management**: Fitur kenaikan kelas massal dan kelulusan massal siswa kelas XII menjadi alumni (`aktif = false`).
-* **cPanel Backup Exporter**: API backup database manual yang mengubah data relasi tabel Prisma langsung menjadi berkas SQL script siap pakai di phpMyAdmin cPanel tanpa perintah CLI `mysqldump`.
-* **WhatsApp Diagnostics**: Widget monitor sisa saldo kuota Fonnte dan formulir pesan diagnostik langsung.
+1. **Portal Siswa** — scan QR, GPS kondisional, fingerprint sesi tunggal, feedback audio/haptic, dispensasi.  
+2. **TV Display** — token AES dinamis, SSE live absensi.  
+3. **Guru Piket** — absensi satu-klik + IndexedDB offline + bulk-sync.  
+4. **Wali Kelas** — kalender grid, Excel/PDF, broadcast WA.  
+5. **Guru BK** — EWS, SP PDF, log konseling.  
+6. **Kepala Sekolah** — tren, leaderboard, monitor piket.  
+7. **Admin** — CRUD, import XLSX, audit, backup SQL, lifecycle, auto-alpha.
 
 ---
 
-## 🛠️ TEKNOLOGI YANG DIGUNAKAN
+## Quick start (Laravel)
 
-### **Frontend & Framework**
-* **React 19** & **Next.js 16** (Webpack Mode untuk isolasi modul SSR)
-* **Tailwind CSS v4** (Desain responsif & modern)
-* **Zustand** (State management)
-* **Lucide React** (Kumpulan ikon premium)
-* **Dexie.js** (Wrapper IndexedDB lokal)
-* **@react-pdf/renderer** (Pembuatan PDF client-side)
+```bash
+composer install
+cp .env.example .env && php artisan key:generate
+# set DB_* MySQL
+php artisan migrate --seed
+npm install && npm run build
 
-### **Backend & Database**
-* **Next.js Route Handlers** (API endpoints)
-* **Prisma ORM** (Skema relasi database & kueri)
-* **MySQL / MariaDB** (Penyimpanan database relasional)
-* **JWT (JsonWebToken) & Bcrypt** (Autentikasi & enkripsi sandi)
-* **Axios** (WhatsApp API integration)
+php artisan serve          # http://localhost:8000
+php artisan queue:work     # WA
+php artisan schedule:work  # auto-alpha
+```
 
-## 📚 DOKUMENTASI LENGKAP
-
-Seluruh dokumentasi proyek (PRD, SOP, spesifikasi fitur, arsitektur, database, panduan deploy, dll) tersimpan terpusat di folder **[`docs/`](docs/INDEX.md)**.
-
-*   **[AGENTS.md](AGENTS.md)** — Panduan universal untuk AI agent (Claude, Gemini, Copilot, dll)
-*   **[docs/INDEX.md](docs/INDEX.md)** — Daftar isi & navigasi seluruh dokumentasi
-*   **[docs/PRD.md](docs/PRD.md)** — Product Requirements Document v3.7
-*   **[docs/SOP.md](docs/SOP.md)** — SOP Implementasi & skema Prisma
+Detail: [`docs/DEPLOY_LOKAL.md`](docs/DEPLOY_LOKAL.md) · checklist migrasi: [`docs/MIGRASI_LARAVEL.md`](docs/MIGRASI_LARAVEL.md).
 
 ---
 
-## 🚀 PANDUAN MEMULAI PENGEMBANGAN LOKAL
+## Dokumentasi
 
-### 1. Kloning Repositori
-```bash
-git clone https://github.com/smkarrahma/absensi.git
-cd absensi/absensi_smk_ar_rahma
-```
-
-### 2. Instalasi Dependensi
-```bash
-npm install
-```
-
-### 3. Konfigurasi Environment Variables (`.env`)
-Salin berkas `.env.example` ke `.env` dan lengkapi konfigurasi berikut:
-```env
-DATABASE_URL="mysql://username:password@localhost:3306/absensi_db"
-JWT_SECRET="isi_kunci_jwt_rahasia_dan_panjang"
-AES_SECRET_KEY="12345678901234567890123456789012" # Harus tepat 32 karakter
-FONNTE_TOKEN="token_api_fonnte_anda"
-```
-
-### 4. Sinkronisasi Database (Prisma)
-Jalankan perintah prisma untuk memvalidasi dan migrasi database:
-```bash
-npx prisma generate
-npx prisma db seed # Mengisi data default Pengaturan, HariLibur, dan Admin Awal
-```
-
-### 5. Jalankan Server Pengembangan (Webpack Mode)
-```bash
-npm run dev
-```
-Aplikasi akan aktif di `http://localhost:3000`.
+| Dokumen | Isi |
+|---------|-----|
+| [`AGENTS.md`](AGENTS.md) | Aturan AI agent + perintah Laravel |
+| [`docs/INDEX.md`](docs/INDEX.md) | Daftar isi |
+| [`docs/PRD.md`](docs/PRD.md) | Product Requirements v3.11-L |
+| [`docs/SRS.md`](docs/SRS.md) | Software Requirements |
+| [`docs/MIGRASI_LARAVEL.md`](docs/MIGRASI_LARAVEL.md) | Checklist migrasi penuh |
+| [`docs/SOP.md`](docs/SOP.md) | Struktur folder, auth, API, scheduler |
+| [`docs/DATABASE.md`](docs/DATABASE.md) | Kamus 12 tabel |
+| [`docs/API.md`](docs/API.md) | Katalog `/api/*` |
+| [`docs/WHATSAPP.md`](docs/WHATSAPP.md) | Fonnte & OpenWA: token, URL, kirim |
+| [`docs/ARSITEKTUR.md`](docs/ARSITEKTUR.md) | Arsitektur Laravel + Inertia |
 
 ---
 
-## 📦 PRODUKSI & DEPLOYMENT cPANEL
-Untuk merilis aplikasi Next.js ini ke lingkungan hosting produksi cPanel (dengan Node.js Selector / Phusion Passenger):
-1. Jalankan proses kompilasi build produksi:
-   ```bash
-   npm run build
-   ```
-2. Ikuti instruksi detail mengenai pemetaan berkas startup `server.js` dan pengaturan virtual environment yang ada di berkas panduan **[docs/DEPLOY.md](docs/DEPLOY.md)**.
+## Deploy production
+
+Document root = `public/`. Wajib cron `schedule:run` + worker `queue:work`.  
+Panduan: [`docs/DEPLOY.md`](docs/DEPLOY.md).

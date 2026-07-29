@@ -13,7 +13,7 @@ flowchart TD
     B -->|Offline| D[Pencarian Siswa Berbasis Data Lokal Ter-cached]
     C --> E[Klik Tombol Status: Hadir/Terlambat/Izin/Sakit]
     D --> F[Klik Tombol Status: Hadir/Terlambat/Izin/Sakit]
-    E --> G[Kirim API PUT Ke Server Next.js]
+    E --> G[Kirim API PUT Ke Server Laravel]
     G --> H[Simpan Database MySQL & Kirim Notif WA & Tampilkan Bouncy Toast]
     F --> I[Simpan Lokal di IndexedDB dengan Tag 'PendingSync']
     I --> J[Tampilkan Toast Oranye: 'Tersimpan Offline']
@@ -25,6 +25,13 @@ flowchart TD
 ---
 
 ## 2. Rincian Kebutuhan Fungsional & Teknis
+
+### 2.0 Catatan Implementasi Nyata (Penting untuk Parity Laravel)
+
+*   **Batas waktu batal 30 detik hanya validasi client-side.** Backend `DELETE /api/attendance/manual` **tidak** memvalidasi umur record — secara teknis bisa menghapus `Kehadiran` kapan pun. Tombol "Batal" hanya disembunyikan di UI setelah 30 detik. Jika Laravel butuh jaminan keamanan nyata, tambahkan validasi umur record di server (perbaikan, bukan sekadar migrasi).
+*   **Input manual bersifat overwrite tanpa syarat.** `POST /api/attendance/manual` menimpa status kehadiran apa pun yang sudah ada untuk siswa+tanggal tersebut (termasuk hasil scan mandiri siswa sendiri), dan menghapus `LogWa` `TERTUNDA` terkait. Tidak ada aturan "siapa menang jika ada dua sumber data" selain "input terakhir menang".
+*   **Tidak ada validasi enum `status`** di endpoint manual/bulk-sync — nilai status yang tidak valid akan gagal di level database, bukan pesan error aplikasi yang rapi.
+*   **`bulk-sync` tidak mengisi `tahunAjaran`** pada record yang dibuat (beda dari `scan`/`manual` yang mengisi dari `siswa.kelas.tahunAjaran`) — berpotensi salah rekap tahun ajaran untuk data hasil sinkronisasi offline. Perlu diperbaiki saat porting ke Laravel.
 
 ### 2.1 F-DASH-PIKET-01 & 02: Form Cari Cepat & Tombol Pintas Satu-Klik
 *   **Kecepatan Input di Gerbang**:
@@ -49,10 +56,16 @@ flowchart TD
     *   Sisi kanan menampilkan teks konfirmasi: `"Absen {Nama_Siswa} ({Status}) Berhasil Direkam!"`.
     *   Durasi toast aktif di layar adalah 2 detik sebelum menghilang secara perlahan (*fade-out*).
 
-### 2.4 F-DASH-PIKET-05: Arsitektur Offline Cache (IndexedDB & Background Sync)
+### 2.4 F-DASH-PIKET-05b: Verifikasi Dispensasi Keterlambatan
+*   Guru Piket membuka antrean pengajuan siswa (`GET /api/picket/dispensations`) berisi alasan, foto bukti, dan status `MENUNGGU`.
+*   Keputusan satu-klik: **Setujui** atau **Tolak** (`PUT /api/picket/dispensations`) — mencatat `disetujuiOleh` = ID pengguna piket/admin.
+*   Setelah disetujui, staf dapat menyesuaikan status kehadiran terkait (mis. `TERLAMBAT` dengan catatan dispensasi) sesuai kebijakan operasional sekolah.
+
+### 2.5 F-DASH-PIKET-05: Arsitektur Offline Cache (IndexedDB & Background Sync)
 *   **Prinsip Kerja Offline**:
-    *   Aplikasi menggunakan database lokal browser **IndexedDB** melalui pustaka pembantu `Dexie.js` atau API native.
-    *   Saat halaman pertama kali dimuat di pagi hari (ketika online), sistem mengunduh kamus daftar siswa aktif (Nama, NISN, ID, Kelas) ke IndexedDB untuk referensi offline.
+    *   Aplikasi menggunakan database lokal browser **IndexedDB** melalui `Dexie.js`.
+    *   Nama database: **`AbsensiOfflineDatabase`**, versi `1`. Tabel: `siswa` (indeks `id, nisn, nama, namaKelas`) dan `kehadiran_tertunda` (indeks `++id, idSiswa, tanggal, statusSync`). Nama & versi ini wajib direplikasi identik bila IndexedDB tetap dipakai di frontend Laravel/Inertia agar data lama di browser Guru Piket tidak hilang saat cutover.
+    *   Saat halaman pertama kali dimuat di pagi hari (ketika online), sistem mengunduh kamus daftar siswa aktif (Nama, NISN, ID, Kelas) ke tabel `siswa` IndexedDB untuk referensi offline.
 *   **Skema Penyimpanan IndexedDB saat Internet Putus**:
     *   Ketika Guru Piket menekan tombol absensi saat Wi-Fi mati, sistem gagal menghubungi API `/api/attendance/manual`.
     *   Sistem menangkap exception kegagalan jaringan, lalu menyimpan record absensi secara lokal di IndexedDB dalam tabel `kehadiran_tertunda` dengan skema data:

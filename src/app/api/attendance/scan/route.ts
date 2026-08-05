@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
       hourCycle: 'h23', // Ensure 24-hour format
       timeZone: 'Asia/Jakarta'
     });
-    const jamMenitVisual = wibTimeFormatter.format(now);
+    const jamMenitVisual = wibTimeFormatter.format(now).replace(/\./g, ":"); // Ganti titik (.) locale id-ID ke titik dua (:)
     const jamMenitSekarang = jamMenitVisual;
 
     // Cek duplikasi absensi hari ini

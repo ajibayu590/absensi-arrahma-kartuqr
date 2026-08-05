@@ -17,12 +17,23 @@ export async function runAutoAlpha(force = false): Promise<{ success: boolean; p
   isProcessing = true;
 
   try {
-    // 1. Tentukan Tanggal Hari Ini (WIB / UTC+7)
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const dayOfWeek = wibDate.getUTCDay();
-    const dateStr = wibDate.toISOString().split("T")[0];
+    // 1. Tentukan Tanggal Hari Ini (WIB / UTC+7) secara aman
+    const now = new Date();
+    const wibDateFormatter = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    });
+    const dateStr = wibDateFormatter.format(now).replace(/\//g, '-');
     const cleanToday = new Date(dateStr);
+
+    // Ambil dayOfWeek di Jakarta
+    const dayWibFormatter = new Intl.DateTimeFormat('en-US', {
+      weekday: 'numeric',
+      timeZone: 'Asia/Jakarta'
+    });
+    const dayOfWeek = parseInt(dayWibFormatter.format(now), 10) % 7; // 0 = Sunday, 1-6 = Monday-Saturday
 
     // 2. Ambil Jam Toleransi dari database
     const settings = await prisma.pengaturan.findMany({
@@ -51,7 +62,13 @@ export async function runAutoAlpha(force = false): Promise<{ success: boolean; p
       }
 
       // Cek apakah waktu saat ini sudah melewati jam toleransi
-      const currentHourMin = wibDate.toISOString().split("T")[1].slice(0, 5); // "HH:MM"
+      const wibTimeFormatter = new Intl.DateTimeFormat('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+        timeZone: 'Asia/Jakarta'
+      });
+      const currentHourMin = wibTimeFormatter.format(now).replace(/\./g, ":"); // "HH:MM"
       if (currentHourMin < jamToleransiStr) {
         return { success: true, processedCount: 0, message: `Belum melewati jam toleransi (${jamToleransiStr}). Proses auto-alpha ditunda.` };
       }

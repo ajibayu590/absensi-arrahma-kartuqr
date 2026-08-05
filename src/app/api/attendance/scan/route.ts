@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
     }
     const payload: TokenPayload = JSON.parse(userPayloadHeader);
 
-    if (payload.peran !== "SISWA") {
+    if (payload.peran !== "ADMIN" && payload.peran !== "GURU") {
       return NextResponse.json(
-        { error: "Akses ditolak. Hanya siswa yang dapat melakukan pemindaian mandiri." },
+        { error: "Akses ditolak. Hanya Admin atau Guru Piket yang dapat memindai kehadiran siswa." },
         { status: 403 }
       );
     }
@@ -50,9 +50,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Token QR wajib dikirimkan." }, { status: 400 });
     }
 
-    // 1. Ambil data Siswa, Pengguna, dan Kelas
+    // 1. Dekripsi dan Validasi Token QR Statis Siswa
+    const decrypted = decryptToken(token);
+    if (!decrypted || decrypted.type !== "siswa_statis" || !decrypted.nisn) {
+      return NextResponse.json({ error: "QR Code kartu siswa tidak valid." }, { status: 400 });
+    }
+
+    const targetNisn = decrypted.nisn;
+
+    // 2. Ambil data Siswa, Pengguna, dan Kelas berdasarkan NISN hasil dekripsi
     const siswa = await prisma.siswa.findUnique({
-      where: { idPengguna: payload.userId },
+      where: { nisn: targetNisn },
       include: {
         kelas: true,
         pengguna: true,
@@ -61,43 +69,20 @@ export async function POST(req: NextRequest) {
 
     if (!siswa) {
       return NextResponse.json(
-        { error: "Data profil siswa tidak ditemukan." },
+        { error: "Siswa tidak terdaftar di sistem." },
         { status: 404 }
       );
     }
 
-    // 2. Proteksi Blokir Scan 5 Menit (Sesi Ganda / Hijack)
-    if (
-      siswa.pengguna.absenDiblokirHingga &&
-      new Date(siswa.pengguna.absenDiblokirHingga) > new Date()
-    ) {
-      const menitTersisa = Math.ceil(
-        (new Date(siswa.pengguna.absenDiblokirHingga).getTime() - Date.now()) / (60 * 1000)
-      );
+    // 3. Proteksi Sesi dan Status Aktif
+    if (!siswa.pengguna.aktif) {
       return NextResponse.json(
-        {
-          error: `Akun Anda diblokir sementara selama ${menitTersisa} menit karena terdeteksi login sharing di perangkat lain.`,
-        },
-        { status: 403 }
-      );
-    }
-
-    // 3. Dekripsi dan Validasi Token QR Dinamis
-    const decrypted = decryptToken(token);
-    if (!decrypted || decrypted.target !== "absensi_smk_ar_rahma") {
-      return NextResponse.json({ error: "Token QR tidak valid." }, { status: 400 });
-    }
-
-    const selisihWaktu = Date.now() - decrypted.timestamp;
-    if (selisihWaktu > 60000 || selisihWaktu < -2000) {
-      // Izinkan toleransi minor offset waktu server/client -2s
-      return NextResponse.json(
-        { error: "Token QR kedaluwarsa. Silakan scan ulang kode terbaru di layar TV." },
+        { error: "Status akun siswa ini tidak aktif." },
         { status: 400 }
       );
     }
 
-    // 4. Validasi Geofencing (Radius Koordinat Sekolah)
+    // 4. Validasi Geofencing (Radius Koordinat Sekolah terhadap Guru Piket)
     // Ambil pengaturan sekolah dari DB
     const settings = await prisma.pengaturan.findMany({
       where: {
@@ -145,7 +130,7 @@ export async function POST(req: NextRequest) {
       if (jarakMeter > schoolRadius) {
         return NextResponse.json(
           {
-            error: `Gagal Absen: Lokasi Anda terlalu jauh dari sekolah. Lintang/Bujur terdeteksi ${Math.round(
+            error: `Gagal Absen: Lokasi pemindai terlalu jauh dari sekolah. Lintang/Bujur terdeteksi ${Math.round(
               jarakMeter
             )} meter dari gerbang (Batas radius: ${schoolRadius}m).`,
           },
@@ -153,7 +138,6 @@ export async function POST(req: NextRequest) {
         );
       }
     } else {
-      // Jika geofencing nonaktif, tetap catat koordinat jika terkirim
       if (latitude !== undefined && longitude !== undefined) {
         const parsedLat = parseFloat(latitude);
         const parsedLon = parseFloat(longitude);
@@ -203,21 +187,75 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Tentukan Status Kehadiran (HADIR / TERLAMBAT / DITOLAK karena melebih toleransi)
-    // const jamMenitSekarang = wibDate.toISOString().split("T")[1].slice(0, 5); // e.g. "07:05" // Dihapus, sudah dideklarasikan di atas
+    // 6. Tentukan Status Kehadiran (HADIR / TERLAMBAT / DITOLAK karena melebihi toleransi)
     const jamMasuk = config["jam_masuk"] || "07:00";
     const jamToleransi = config["jam_toleransi"] || "07:15";
 
+    // Konversi format jam "HH:MM" ke menit
+    const toMinutes = (timeStr: string) => {
+      const [h, m] = timeStr.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const minSekarang = toMinutes(jamMenitSekarang);
+    const minMasuk = toMinutes(jamMasuk);
+    const minToleransi = toMinutes(jamToleransi);
+    const minLimitManual = minToleransi + 60; // Batas scan QR adalah 1 jam setelah jam toleransi
+
     let statusKehadiran: "HADIR" | "TERLAMBAT";
 
-    if (jamMenitSekarang <= jamMasuk) {
+    if (minSekarang <= minMasuk) {
       statusKehadiran = "HADIR";
-    } else if (jamMenitSekarang <= jamToleransi) {
+    } else if (minSekarang <= minToleransi) {
       statusKehadiran = "TERLAMBAT";
-    } else {
+    } else if (minSekarang <= minLimitManual) {
       return NextResponse.json(
         {
-          error: `Batas toleransi kehadiran telah berakhir (${jamToleransi} WIB). Silakan lapor ke Guru Piket di gerbang untuk absensi manual.`,
+          error: `Batas scan QR berakhir (${jamToleransi} WIB). Wajib absen manual oleh Guru Piket.`,
+          code: "QR_LIMIT_EXCEEDED"
+        },
+        { status: 400 }
+      );
+    } else {
+      // Lebih dari 1 jam dari toleransi -> auto ALPHA (Siswa tidak bisa scan/diabsenkan manual lobi gerbang lagi)
+      // Buat data kehadiran ALPHA hari ini
+      await prisma.kehadiran.create({
+        data: {
+          idSiswa: siswa.id,
+          tanggal: cleanDate,
+          status: "ALPHA",
+          dicatatOleh: payload.userId,
+          catatan: "Otomatis Alpha (Melebihi batas toleransi + 1 jam)",
+          tahunAjaran: siswa.kelas.tahunAjaran,
+        },
+      });
+
+      // Kirim Notifikasi WA Alpha ke Ortu
+      const tglFormat = now.toLocaleDateString("id-ID", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "Asia/Jakarta"
+      });
+
+      const pesanWa = `📌 *PERINGATAN ABSENSI - SMK AR-RAHMA MANDIRI INDONESIA*\n\nKepada Yth. Orang Tua/Wali dari:\n👤 Nama: *${siswa.nama}*\n🏫 Kelas: *${siswa.kelas.nama}*\n📅 Tanggal: *${tglFormat}*\n\nStatus kehadiran hari ini:\n❌ *ALPHA* (Tidak hadir melebihi batas waktu toleransi)\n\nMohon hubungi pihak sekolah/wali kelas untuk penjelasan lebih lanjut.\n---\n*SMK AR-RAHMA MANDIRI INDONESIA*`;
+
+      const logWa = await prisma.logWa.create({
+        data: {
+          idSiswa: siswa.id,
+          telepon: siswa.teleponOrangTua,
+          pesan: pesanWa,
+          status: "TERTUNDA",
+        },
+      });
+
+      kirimWaDenganAntrean(logWa.id);
+
+      return NextResponse.json(
+        {
+          error: `Batas kehadiran telah berakhir. Siswa tercatat ALPHA.`,
+          code: "AUTO_ALPHA_TRIGGERED"
         },
         { status: 400 }
       );
@@ -240,8 +278,8 @@ export async function POST(req: NextRequest) {
     // Format jam untuk visual
     // const jamMenitVisual = wibDate.toISOString().split("T")[1].slice(0, 5); // Dihapus, sudah dideklarasikan di atas
 
-    // 8. Pancarkan event real-time (SSE) ke layar TV
-    broadcastAttendance(siswa.nama, jamMenitVisual);
+    // 8. Pancarkan event real-time (SSE) ke lobi/TV jika diperlukan
+    // broadcastAttendance(siswa.nama, jamMenitVisual);
 
     // 9. Susun Pesan & Buat Log Notifikasi WhatsApp (Antrean Gateway)
     const tglFormat = now.toLocaleDateString("id-ID", {
@@ -276,6 +314,10 @@ export async function POST(req: NextRequest) {
       success: true,
       message: "Absensi berhasil direkam.",
       kehadiran: {
+        id: kehadiran.id,
+        idSiswa: siswa.id,
+        namaSiswa: siswa.nama,
+        kelasSiswa: siswa.kelas.nama,
         status: statusKehadiran,
         waktuMasuk: jamMenitVisual,
       },

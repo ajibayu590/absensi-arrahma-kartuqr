@@ -1,4 +1,5 @@
-import { PrismaClient, Peran } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { Peran } from "@prisma/client";
 import * as bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();

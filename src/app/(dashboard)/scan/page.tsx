@@ -13,7 +13,9 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  Trash2
+  Trash2,
+  Camera,
+  QrCode
 } from "lucide-react";
 
 interface RecentLog {
@@ -23,7 +25,7 @@ interface RecentLog {
   kelasSiswa: string;
   status: "HADIR" | "TERLAMBAT" | "SAKIT" | "IZIN" | "ALPHA";
   waktuMasuk: string; // HH:MM
-  createdAt: number; // local timestamp to track 30s cancellation window
+  createdAt: number; // local timestamp to track 10s cancellation window
   statusSync: "ONLINE" | "PENDING";
 }
 
@@ -36,6 +38,12 @@ export default function PiketScanPage() {
   const [recentLogs, setRecentLogs] = useState<RecentLog[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // QR Scanner States
+  const [isScannerActive, setIsScannerActive] = useState(false);
+  const [scannerInitialized, setScannerInitialized] = useState(false);
+  const scannerRef = useRef<any>(null);
+  const isProcessingScan = useRef(false);
 
   // Dispensations States
   const [dispensations, setDispensations] = useState<{
@@ -382,8 +390,8 @@ export default function PiketScanPage() {
   // Batalkan absensi (Batal / Delete)
   const handleCancelAttendance = async (log: RecentLog) => {
     const timeElapsed = Date.now() - log.createdAt;
-    if (timeElapsed > 30000) {
-      toast.error("Batas waktu pembatalan 30 detik telah berakhir.");
+    if (timeElapsed > 10000) {
+      toast.error("Batas waktu pembatalan 10 detik telah berakhir.");
       return;
     }
 
@@ -419,6 +427,125 @@ export default function PiketScanPage() {
       }
     }
   };
+
+  // === QR SCANNER FUNCTIONS ===
+  async function initScanner() {
+    try {
+      setScannerInitialized(false);
+      const { Html5Qrcode } = await import("html5-qrcode");
+      const scanner = new Html5Qrcode("piket-reader");
+      scannerRef.current = scanner;
+
+      const qrBoxFunction = (width: number, height: number) => {
+        const min = Math.min(width, height);
+        const qrBoxSize = Math.floor(min * 0.8);
+        return { width: qrBoxSize, height: qrBoxSize };
+      };
+
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: qrBoxFunction,
+          aspectRatio: 1,
+          videoConstraints: { facingMode: "environment" }
+        },
+        async (decodedText: string) => {
+          if (isProcessingScan.current) return;
+          isProcessingScan.current = true;
+          await handleQrScanResult(decodedText);
+        },
+        () => {}
+      );
+
+      const videoElement = document.querySelector("#piket-reader video") as HTMLVideoElement;
+      if (videoElement) {
+        videoElement.setAttribute("playsinline", "true");
+      }
+
+      setScannerInitialized(true);
+    } catch (err: any) {
+      console.error("Scanner init error:", err);
+      toast.error(err.message || "Gagal mengaktifkan kamera. Periksa izin kamera di pengaturan browser.");
+      setIsScannerActive(false);
+    }
+  }
+
+  async function cleanupScanner() {
+    if (scannerRef.current) {
+      if (scannerRef.current.isScanning) {
+        try {
+          await scannerRef.current.stop();
+        } catch (err) {
+          console.error("Gagal stop scanner:", err);
+        }
+      }
+      scannerRef.current = null;
+      setScannerInitialized(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!isScannerActive) {
+      cleanupScanner();
+      return;
+    }
+    const timer = setTimeout(() => {
+      initScanner();
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      cleanupScanner();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isScannerActive]);
+
+  async function handleQrScanResult(token: string) {
+    try {
+      const res = await fetch("/api/attendance/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.code === "QR_LIMIT_EXCEEDED") {
+          toast.error(data.error);
+        } else if (data.code === "AUTO_ALPHA_TRIGGERED") {
+          toast.error(data.error);
+        } else {
+          throw new Error(data.error || "Gagal memproses scan.");
+        }
+        isProcessingScan.current = false;
+        return;
+      }
+
+      const jamMenitVisual = new Date().toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      showBouncyToast(data.kehadiran.namaSiswa || "Siswa", data.kehadiran.status, false);
+
+      const newLog: RecentLog = {
+        id: data.kehadiran.id,
+        idSiswa: data.kehadiran.idSiswa || 0,
+        namaSiswa: data.kehadiran.namaSiswa || "Siswa",
+        kelasSiswa: data.kehadiran.kelasSiswa || "",
+        status: data.kehadiran.status,
+        waktuMasuk: data.kehadiran.waktuMasuk || jamMenitVisual,
+        createdAt: Date.now(),
+        statusSync: "ONLINE"
+      };
+      setRecentLogs((prev) => [newLog, ...prev].slice(0, 5));
+    } catch (err: any) {
+      toast.error(err.message || "Gagal memproses scan.");
+    } finally {
+      isProcessingScan.current = false;
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -482,6 +609,54 @@ export default function PiketScanPage() {
                 </span>
               )}
             </div>
+          </div>
+
+          {/* QR SCANNER KAMERA */}
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200/50 dark:border-zinc-800/50 shadow-sm space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-emerald-600" />
+                Scan QR Kartu Siswa
+              </h3>
+              <button
+                onClick={() => setIsScannerActive(!isScannerActive)}
+                className={`py-2 px-4 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isScannerActive
+                    ? "bg-red-500 hover:bg-red-600 text-white"
+                    : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                }`}
+              >
+                <Camera className="w-4 h-4" />
+                {isScannerActive ? "Matikan Kamera" : "Aktifkan Kamera"}
+              </button>
+            </div>
+
+            {isScannerActive && (
+              <div className="flex flex-col items-center space-y-3">
+                <style dangerouslySetInnerHTML={{__html: `
+                  #piket-reader video {
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                  }
+                `}} />
+                <div className="w-64 h-64 md:w-80 md:h-80 rounded-2xl overflow-hidden border-4 border-emerald-500/80 shadow-xl relative bg-zinc-900">
+                  <div id="piket-reader" className="w-full h-full" />
+                  {!scannerInitialized && (
+                    <div className="absolute inset-0 bg-zinc-900 z-20 flex flex-col items-center justify-center text-center p-4">
+                      <Camera className="w-10 h-10 text-zinc-500 animate-bounce mb-2" />
+                      <span className="text-xs text-zinc-500 font-semibold uppercase">Mengaktifkan Kamera...</span>
+                    </div>
+                  )}
+                  {scannerInitialized && (
+                    <div className="absolute top-0 left-0 w-full h-1 bg-emerald-400 opacity-60 animate-bounce z-10"></div>
+                  )}
+                </div>
+                <p className="text-xs text-zinc-400 text-center max-w-sm leading-relaxed">
+                  Arahkan kamera ke QR Code kartu siswa. Absensi otomatis tercatat saat QR berhasil dipindai.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* FIELD PENCARIAN UTAMA */}
@@ -589,7 +764,7 @@ export default function PiketScanPage() {
                 recentLogs.map((log) => {
                   const sisaDetik = Math.max(
                     0,
-                    30 - Math.floor((Date.now() - log.createdAt) / 1000)
+                    10 - Math.floor((Date.now() - log.createdAt) / 1000)
                   );
                   const bisaBatal = sisaDetik > 0;
 

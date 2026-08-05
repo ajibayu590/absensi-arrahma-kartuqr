@@ -17,6 +17,8 @@ export function encryptToken(data: any): string {
   if (typeof data === "object" && data !== null && data.target === "absensi_smk_ar_rahma") {
     // Compress plain text format to minimize encrypted QR token length
     plainText = `SMK:${data.timestamp}:${data.rand || ""}`;
+  } else if (typeof data === "object" && data !== null && data.type === "siswa_statis") {
+    plainText = `SISWASTATIS:${data.nisn}`;
   } else {
     plainText = JSON.stringify(data);
   }
@@ -47,6 +49,14 @@ export function decryptToken(token: string): any {
         target: "absensi_smk_ar_rahma",
         timestamp: parseInt(tokens[1], 10),
         rand: tokens[2] || "",
+      };
+    }
+
+    if (decryptedStr.startsWith("SISWASTATIS:")) {
+      const tokens = decryptedStr.split(":");
+      return {
+        type: "siswa_statis",
+        nisn: tokens[1],
       };
     }
 

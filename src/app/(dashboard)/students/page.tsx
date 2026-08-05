@@ -17,7 +17,8 @@ import {
   BookOpen,
   Briefcase,
   Key,
-  UploadCloud
+  UploadCloud,
+  Printer
 } from "lucide-react";
 
 interface Siswa {
@@ -96,6 +97,49 @@ function StudentsPageContent() {
   const [formTanggalMulai, setFormTanggalMulai] = useState("");
   const [formTanggalSelesai, setFormTanggalSelesai] = useState("");
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [printingCards, setPrintingCards] = useState(false);
+
+  const handlePrintCards = async (siswaList: { nisn: string; nama: string; namaKelas: string }[]) => {
+    if (siswaList.length === 0) {
+      toast.error("Tidak ada siswa untuk dicetak.");
+      return;
+    }
+    setPrintingCards(true);
+    try {
+      const { encryptToken } = await import("@/lib/token-helper");
+      const QRCode = (await import("qrcode")).default;
+
+      const cardData = await Promise.all(
+        siswaList.map(async (s) => {
+          const token = encryptToken({ type: "siswa_statis", nisn: s.nisn });
+          const qrDataUrl = await QRCode.toDataURL(token, {
+            width: 200,
+            margin: 1,
+            color: { dark: "#000000", light: "#ffffff" },
+            errorCorrectionLevel: "M"
+          });
+          return { nisn: s.nisn, nama: s.nama, kelas: s.namaKelas, qrDataUrl };
+        })
+      );
+
+      const { pdf } = await import("@react-pdf/renderer");
+      const KartuSiswaPdfDocument = (await import("@/components/pdf/KartuSiswaPdf")).default;
+      const blob = await pdf(<KartuSiswaPdfDocument siswaList={cardData} />).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Kartu_Absensi_${siswaList.length > 1 ? "Kelas" : siswaList[0].nama}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Kartu ${siswaList.length} siswa berhasil diunduh!`);
+    } catch (err: any) {
+      console.error("Gagal cetak kartu:", err);
+      toast.error("Gagal membuat kartu PDF.");
+    } finally {
+      setPrintingCards(false);
+    }
+  };
 
   const handleToggleSelectStudent = (id: number) => {
     setSelectedStudentIds((prev) =>
@@ -420,6 +464,19 @@ function StudentsPageContent() {
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button
             onClick={() => {
+              const targetStudents = filterKelasId
+                ? filteredStudents
+                : filteredStudents;
+              handlePrintCards(targetStudents.map((s) => ({ nisn: s.nisn, nama: s.nama, namaKelas: s.namaKelas })));
+            }}
+            disabled={printingCards || filteredStudents.length === 0}
+            className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-600/10 cursor-pointer w-full md:w-auto justify-center disabled:opacity-50"
+          >
+            {printingCards ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+            <span>Cetak Kartu {filterKelasId ? "Kelas" : "Semua"}</span>
+          </button>
+          <button
+            onClick={() => {
               setShowImportModal(true);
               setImportResult(null);
             }}
@@ -563,6 +620,14 @@ function StudentsPageContent() {
                           className="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 rounded-lg cursor-pointer transition-colors"
                         >
                           <Key className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handlePrintCards([{ nisn: s.nisn, nama: s.nama, namaKelas: s.namaKelas }])}
+                          title="Cetak Kartu QR Siswa"
+                          disabled={printingCards}
+                          className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteStudent(s.id, s.nama)}

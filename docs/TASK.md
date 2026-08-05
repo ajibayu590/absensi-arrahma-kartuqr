@@ -247,6 +247,14 @@ Dokumen ini berisi daftar tugas pengerjaan (*checklist TODO*) yang dibagi ke dal
 
 | Tanggal | Fitur / Komponen | Deskripsi Masalah | Solusi / Perbaikan | Status |
 | :--- | :--- | :--- | :--- | :--- |
+| 2026-08-05 | Sistem Scan | Migrasi QR dinamis ke QR statis | Implementasi: Enkripsi NISN (AES-256), scanner html5-qrcode di guru piket, portal siswa tampilkan QR statis. | Selesai |
+| 2026-08-05 | Sistem Scan | Keamanan QR statis | Implementasi: Enkripsi NISN via `SISWASTATIS:` prefix di `token-helper.ts`, validasi dekripsi di API scan. | Selesai |
+| 2026-08-05 | Cetak Kartu Siswa | Membuat fitur cetak kartu siswa dengan QR statis. | Implementasi: `KartuSiswaPdf.tsx`, tombol cetak per siswa & per kelas di `/students`. | Selesai |
+| 2026-08-05 | Enkripsi QR | Algoritma enkripsi untuk payload QR statis. | AES-256-CBC dengan key dari `JWT_SECRET`, payload `SISWASTATIS:{NISN}`. | Selesai |
+| 2026-08-05 | Sistem Scan | Validasi Waktu Absen & Pembatalan | Jam masuk/toleransi dinamis dari DB. Lewat toleransi -> manual piket. Lewat toleransi + 1 jam -> auto Alpha + WA notif. Batas batal manual -> 10 detik. | Selesai |
+| 2026-08-05 | Portal Siswa | Migrasi scanner ke QR statis display | Hapus scanner kamera siswa, ganti dengan tampilan QR Code statis terenkripsi NISN sebagai backup kartu fisik. API `/api/student/qr-token`. | Selesai |
+| 2026-08-05 | Guru Piket Scan | Tambah scanner kamera di dashboard piket | Integrasi `html5-qrcode` di `/scan` (tab Pencatatan Kehadiran), kompatibel Android/iOS via WebRTC. | Selesai |
+| :--- | :--- | :--- | :--- | :--- |
 | 2026-06-04 | Database Isolation | Database bercampur dengan project lain. | Konfigurasi database mandiri `absensi_smk_ar_rahma`, inisialisasi `prisma/schema.sql`, dan seeding data awal. | Selesai |
 | 2026-06-04 | Routing Collision | Path `/` menampilkan template bawaan Vercel/Next.js, bukan halaman login. | Menghapus file `src/app/page.tsx` yang bentrok dengan route dashboard/login di `src/app/(dashboard)/page.tsx`. | Selesai |
 | 2026-06-04 | IndexedDB Cache | `siswa.bulkAdd()` crash `ConstraintError: Key already exists` di halaman Guru Piket. | Mengubah `bulkAdd()` menjadi `bulkPut()` untuk menghindari crash akibat double rendering React.StrictMode. | Selesai |

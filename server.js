@@ -31,10 +31,11 @@ function triggerAutoAlpha() {
 
 function schedulerTick() {
   const now = new Date();
-  const wibTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
-  const hour = wibTime.getUTCHours();
-  const minute = wibTime.getUTCMinutes();
-  const today = wibTime.toISOString().split("T")[0];
+  
+  // Dapatkan waktu WIB menggunakan Intl (konsisten tanpa manual offset)
+  const hour = parseInt(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Jakarta' }).format(now));
+  const minute = parseInt(new Intl.DateTimeFormat('en-US', { minute: 'numeric', timeZone: 'Asia/Jakarta' }).format(now));
+  const today = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Jakarta' }).format(now);
 
   // Trigger once per day within a 20-minute window
   if (
@@ -43,7 +44,7 @@ function schedulerTick() {
     minute < AUTO_ALPHA_MINUTE + 20 &&
     autoAlphaTriggeredToday !== today
   ) {
-    console.log(`[SCHEDULER] Triggering auto-alpha at ${hour}:${minute} WIB`);
+    console.log(`[SCHEDULER] Triggering auto-alpha at ${hour}:${String(minute).padStart(2, "0")} WIB`);
     triggerAutoAlpha();
     autoAlphaTriggeredToday = today;
   }

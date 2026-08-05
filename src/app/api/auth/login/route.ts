@@ -128,8 +128,8 @@ export async function POST(req: Request) {
 
     response.cookies.set("token", token, {
       httpOnly: true,
-      secure: true, // Dipaksa true agar cookie tersimpan saat diakses lewat HTTPS Tunnel cloudflared
-      sameSite: "strict",
+      secure: req.url.startsWith("https://"),
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60, // 7 hari
       path: "/"
     });

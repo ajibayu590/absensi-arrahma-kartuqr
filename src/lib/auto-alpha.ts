@@ -89,7 +89,8 @@ export async function runAutoAlpha(force = false): Promise<{ success: boolean; p
       weekday: "long",
       year: "numeric",
       month: "long",
-      day: "numeric"
+      day: "numeric",
+      timeZone: "Asia/Jakarta"
     });
 
     for (const k of classes) {

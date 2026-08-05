@@ -27,10 +27,22 @@ export async function GET(req: NextRequest) {
       6: HariPiket.SABTU,
     };
 
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const todayDay = wibDate.getUTCDay(); // 0 is Sunday, 1 is Monday, etc.
-    const hariPiket = daysMap[todayDay];
+    const now = new Date();
+    const dayWibFormatter = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      timeZone: 'Asia/Jakarta'
+    });
+    const dayName = dayWibFormatter.format(now);
+    const wibDays: Record<string, HariPiket> = {
+      "Sunday": HariPiket.SABTU, // fallback, akan ditangkap !hariPiket
+      "Monday": HariPiket.SENIN,
+      "Tuesday": HariPiket.SELASA,
+      "Wednesday": HariPiket.RABU,
+      "Thursday": HariPiket.KAMIS,
+      "Friday": HariPiket.JUMAT,
+      "Saturday": HariPiket.SABTU,
+    };
+    const hariPiket = wibDays[dayName];
 
     if (!hariPiket) {
       return NextResponse.json({

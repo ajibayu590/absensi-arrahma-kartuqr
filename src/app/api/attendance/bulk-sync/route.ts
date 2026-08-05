@@ -104,11 +104,17 @@ export async function POST(req: NextRequest) {
           weekday: "long",
           year: "numeric",
           month: "long",
-          day: "numeric"
+          day: "numeric",
+          timeZone: "Asia/Jakarta"
         });
 
-        const jamMenitVisual = dbWaktuMasuk 
-          ? new Date(dbWaktuMasuk.getTime() + 7 * 60 * 60 * 1000).toISOString().split("T")[1].slice(0, 5)
+        const jamMenitVisual = dbWaktuMasuk
+          ? new Intl.DateTimeFormat('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hourCycle: 'h23',
+              timeZone: 'Asia/Jakarta'
+            }).format(dbWaktuMasuk).replace(/\./g, ":")
           : "-";
 
         let pesanWa = "";

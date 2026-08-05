@@ -223,7 +223,8 @@ const StudentCardDocument = ({
             {new Date().toLocaleDateString("id-ID", {
               day: "numeric",
               month: "long",
-              year: "numeric"
+              year: "numeric",
+              timeZone: "Asia/Jakarta"
             })}
           </Text>
         </View>
@@ -474,8 +475,8 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      const hariNama = day.toLocaleDateString("id-ID", { weekday: "long" });
-      const tanggalFormatted = day.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+      const hariNama = day.toLocaleDateString("id-ID", { weekday: "long", timeZone: "Asia/Jakarta" });
+      const tanggalFormatted = day.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" });
 
       return {
         hariNama,

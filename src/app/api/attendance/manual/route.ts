@@ -107,10 +107,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Format visual jam
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const jamMenitVisual = wibDate.toISOString().split("T")[1].slice(0, 5);
+    // Format visual jam secara aman menggunakan Intl.DateTimeFormat (WIB)
+    const jamMenitVisual = new Intl.DateTimeFormat('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: 'Asia/Jakarta'
+    }).format(new Date()).replace(/\./g, ":");
 
     // Jika HADIR/TERLAMBAT, pancarkan live stream TV
     if (status === "HADIR" || status === "TERLAMBAT") {
@@ -122,7 +125,8 @@ export async function POST(req: NextRequest) {
       weekday: "long",
       year: "numeric",
       month: "long",
-      day: "numeric"
+      day: "numeric",
+      timeZone: "Asia/Jakarta"
     });
 
     let pesanWa = "";

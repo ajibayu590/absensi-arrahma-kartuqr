@@ -35,9 +35,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Alasan pengajuan wajib diisi." }, { status: 400 });
     }
 
-    // Tentukan hari ini (WIB)
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const cleanToday = new Date(new Date(Date.now() + wibOffset).toISOString().split("T")[0]);
+    // Tentukan hari ini (WIB) secara aman
+    const wibDateFormatter = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    });
+    const cleanToday = new Date(wibDateFormatter.format(new Date()).replace(/\//g, '-'));
 
     // Cek jika dispensasi hari ini sudah pernah diajukan
     const existDisp = await prisma.dispensasiKeterlambatan.findUnique({

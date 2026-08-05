@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       flaggedStudents,
-      bulanTahun: now.toLocaleDateString("id-ID", { month: "long", year: "numeric" }),
+      bulanTahun: now.toLocaleDateString("id-ID", { month: "long", year: "numeric", timeZone: "Asia/Jakarta" }),
     });
   } catch (error: any) {
     console.error("Kesalahan API EWS GET:", error);

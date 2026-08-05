@@ -215,7 +215,7 @@ export async function GET(req: NextRequest) {
           const percent = totalSiswaHariItu > 0 ? Math.round((hadirHariItu / totalSiswaHariItu) * 100) : 100;
           
           trendKehadiran.unshift({
-            label: d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric" }),
+            label: d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", timeZone: "Asia/Jakarta" }),
             persentase: percent
           });
 

@@ -58,11 +58,10 @@ export default function DisplayQrPage() {
     };
 
     const updateTime = () => {
-      const wibOffset = 7 * 60 * 60 * 1000;
-      const wibDate = new Date(Date.now() + wibOffset);
-      const hh = wibDate.getUTCHours().toString().padStart(2, "0");
-      const mm = wibDate.getUTCMinutes().toString().padStart(2, "0");
-      const ss = wibDate.getUTCSeconds().toString().padStart(2, "0");
+      const now = new Date();
+      const hh = now.toLocaleTimeString("id-ID", { hour: "2-digit", hourCycle: "h23", timeZone: "Asia/Jakarta" });
+      const mm = now.toLocaleTimeString("id-ID", { minute: "2-digit", timeZone: "Asia/Jakarta" });
+      const ss = now.toLocaleTimeString("id-ID", { second: "2-digit", timeZone: "Asia/Jakarta" });
       
       setCurrentTime(`${hh}:${mm}:${ss}`);
       
@@ -71,15 +70,19 @@ export default function DisplayQrPage() {
         "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
         "Juli", "Agustus", "September", "Oktober", "November", "Desember"
       ];
-      const day = dayNames[wibDate.getUTCDay()];
-      const dateNum = wibDate.getUTCDate();
-      const month = monthNames[wibDate.getUTCMonth()];
-      const year = wibDate.getUTCFullYear();
+      const day = now.toLocaleDateString("id-ID", { weekday: "long", timeZone: "Asia/Jakarta" });
+      const dateNum = parseInt(now.toLocaleDateString("id-ID", { day: "numeric", timeZone: "Asia/Jakarta" }));
+      const month = now.toLocaleDateString("id-ID", { month: "long", timeZone: "Asia/Jakarta" });
+      const year = parseInt(now.toLocaleDateString("id-ID", { year: "numeric", timeZone: "Asia/Jakarta" }));
       
       setCurrentDate(`${day}, ${dateNum} ${month} ${year}`);
 
       // Auto-Alpha Trigger Logic (WIB-based)
-      const todayStr = wibDate.toISOString().split("T")[0];
+      const wibDateFormatter = new Intl.DateTimeFormat('en-CA', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        timeZone: 'Asia/Jakarta'
+      });
+      const todayStr = wibDateFormatter.format(now).replace(/\//g, '-');
       const currentTimeHourMin = `${hh}:${mm}`;
       const limitTime = jamToleransiRef.current;
 

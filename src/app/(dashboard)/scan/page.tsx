@@ -302,8 +302,12 @@ export default function PiketScanPage() {
     siswa: LocalSiswa,
     status: "HADIR" | "TERLAMBAT" | "SAKIT" | "IZIN"
   ) => {
-    // Susun tanggal lokal saat ini (Format YYYY-MM-DD)
-    const tglLocalStr = new Date().toISOString().split("T")[0];
+    // Susun tanggal lokal saat ini (Format YYYY-MM-DD secara aman dari local timezone)
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const tglLocalStr = `${year}-${month}-${day}`;
     const jamMenitVisual = new Date().toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit"

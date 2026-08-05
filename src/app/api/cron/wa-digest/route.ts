@@ -24,10 +24,23 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Akses tidak diizinkan." }, { status: 401 });
     }
 
-    // Tentukan Hari Ini (Zona Waktu WIB / UTC+7)
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const dayOfWeek = wibDate.getUTCDay();
+    // Tentukan Hari Ini (WIB / UTC+7) secara aman
+    const now = new Date();
+    const wibDateFormatter = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    });
+    const dateStr = wibDateFormatter.format(now).replace(/\//g, '-');
+    const cleanToday = new Date(dateStr);
+
+    const wibDayName = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      timeZone: 'Asia/Jakarta'
+    }).format(now);
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayOfWeek = days.indexOf(wibDayName);
 
     // Jika dipicu secara manual, bypass validasi hari libur/akhir pekan
     const bypassHoliday = userIdForAudit !== null;
@@ -39,9 +52,6 @@ export async function GET(req: NextRequest) {
         message: "Hari libur akhir pekan. Laporan digest dilewati."
       });
     }
-
-    const dateStr = wibDate.toISOString().split("T")[0];
-    const cleanToday = new Date(dateStr);
 
     // Cek jika hari libur nasional atau khusus sekolah jika tidak di-bypass
     if (!bypassHoliday) {
@@ -116,7 +126,8 @@ export async function GET(req: NextRequest) {
         weekday: "long",
         day: "numeric",
         month: "long",
-        year: "numeric"
+        year: "numeric",
+        timeZone: "Asia/Jakarta"
       });
 
       // Template pesan formal berbahasa Indonesia

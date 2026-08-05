@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
       phoneClean = "62" + phoneClean.slice(1);
     }
 
-    const testMessage = `🧪 *DIAGNOSTIK WA GATEWAY - SMK AR-RAHMA MANDIRI INDONESIA*\n\nKonektor pengiriman pesan absensi berjalan sukses pada pukul *${new Date().toLocaleTimeString("id-ID")} WIB*.\n\n---\nSistem Absensi SMK AR-RAHMA MANDIRI INDONESIA`;
+    const testMessage = `🧪 *DIAGNOSTIK WA GATEWAY - SMK AR-RAHMA MANDIRI INDONESIA*\n\nKonektor pengiriman pesan absensi berjalan sukses pada pukul *${new Date().toLocaleTimeString("id-ID", { timeZone: "Asia/Jakarta" })} WIB*.\n\n---\nSistem Absensi SMK AR-RAHMA MANDIRI INDONESIA`;
 
     const result = await kirimWaLangsung(phoneClean, testMessage);
 

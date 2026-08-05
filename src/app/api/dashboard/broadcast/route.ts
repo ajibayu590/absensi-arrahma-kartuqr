@@ -32,10 +32,14 @@ export async function POST(req: NextRequest) {
     // 1. Target kelas di-set ke null karena Admin/Kepala Sekolah mengirim secara global
     const targetClassId: number | null = null;
 
-    // 2. Tentukan Tanggal Hari Ini (WIB / UTC+7)
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const dateStr = wibDate.toISOString().split("T")[0];
+    // 2. Tentukan Tanggal Hari Ini (WIB) secara aman
+    const wibDateFormatter = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    });
+    const dateStr = wibDateFormatter.format(new Date()).replace(/\//g, '-');
     const cleanToday = new Date(dateStr);
 
     // Kueri filter dasar untuk mencari siswa

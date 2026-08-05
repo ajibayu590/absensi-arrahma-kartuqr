@@ -107,9 +107,13 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const wibOffset = 7 * 60 * 60 * 1000;
-    const wibDate = new Date(Date.now() + wibOffset);
-    const dateStr = wibDate.toISOString().split("T")[0];
+    const wibDateFormatter = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Jakarta'
+    });
+    const dateStr = wibDateFormatter.format(new Date()).replace(/\//g, '-');
     const cleanToday = new Date(dateStr);
 
     // Hapus data kehadiran hari ini
@@ -117,11 +121,11 @@ export async function DELETE(req: NextRequest) {
       where: { tanggal: cleanToday }
     });
 
-    // Hapus data LogWa hari ini
+    // Hapus data LogWa hari ini (mulai dari awal hari WIB)
     const deletedLogWa = await prisma.logWa.deleteMany({
       where: {
         sentAt: {
-          gte: new Date(cleanToday.getTime() - wibOffset)
+          gte: cleanToday
         }
       }
     });

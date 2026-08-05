@@ -29,11 +29,12 @@ export async function runAutoAlpha(force = false): Promise<{ success: boolean; p
     const cleanToday = new Date(dateStr);
 
     // Ambil dayOfWeek di Jakarta
-    const dayWibFormatter = new Intl.DateTimeFormat('en-US', {
-      weekday: 'numeric',
+    const wibDayName = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
       timeZone: 'Asia/Jakarta'
-    });
-    const dayOfWeek = parseInt(dayWibFormatter.format(now), 10) % 7; // 0 = Sunday, 1-6 = Monday-Saturday
+    }).format(now);
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const dayOfWeek = days.indexOf(wibDayName);
 
     // 2. Ambil Jam Toleransi dari database
     const settings = await prisma.pengaturan.findMany({

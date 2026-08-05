@@ -113,29 +113,26 @@ export default function DashboardLayout({
           const isPiket = user.guru?.isPiket;
           const isWali = !!user.guru?.idKelasWali;
 
-          // Piket murni (hanya piket, bukan BK & bukan Wali) dialihkan ke /scan
-          if (isPiket && !isBk && !isWali) {
-            if (pathname !== "/scan" && pathname !== "/display-qr") {
-              router.push("/scan");
-              return;
-            }
-          }
-
-          // Sebaliknya jika Wali/BK mengakses /scan tapi bukan Piket
-          if (pathname === "/scan" && !isPiket) {
-            router.push("/");
-            return;
-          }
-
           // Halaman BK
           if (pathname === "/bk" && !isBk) {
             router.push("/");
             return;
           }
 
+          // Akses /scan hanya untuk Guru Piket atau Admin
+          if (pathname === "/scan" && !isPiket) {
+            router.push("/");
+            return;
+          }
+
           // Halaman Laporan/Dashboard jika bukan Wali/BK
           if ((pathname === "/" || pathname === "/reports") && !isWali && !isBk) {
-            router.push("/scan");
+            if (isPiket) {
+              router.push("/scan");
+            } else {
+              // Jika Guru tidak punya tugas apa-apa, arahkan ke halaman utama/profile saja
+              // atau biarkan default
+            }
             return;
           }
         }
@@ -180,6 +177,7 @@ export default function DashboardLayout({
       icon: PieChart,
       roles: ["ADMIN", "KEPALA_SEKOLAH"],
       guruCheck: (guru: any) => guru?.isBk || !!guru?.idKelasWali,
+      target: undefined,
     },
     {
       name: "Pencatatan Absensi",
@@ -187,36 +185,42 @@ export default function DashboardLayout({
       icon: Users,
       roles: ["ADMIN"],
       guruCheck: (guru: any) => guru?.isPiket,
+      target: undefined,
     },
     {
       name: "Kelola Kelas",
       path: "/classes",
       icon: BookOpen,
       roles: ["ADMIN"],
+      target: undefined,
     },
     {
       name: "Kelola Guru",
       path: "/teachers",
       icon: User,
       roles: ["ADMIN"],
+      target: undefined,
     },
     {
       name: "Jadwal Piket",
       path: "/picket-schedules",
       icon: Calendar,
       roles: ["ADMIN"],
+      target: undefined,
     },
     {
       name: "Kelola Hari Libur",
       path: "/holidays",
       icon: Calendar,
       roles: ["ADMIN"],
+      target: undefined,
     },
     {
       name: "Kelola Siswa",
       path: "/students",
       icon: Users,
       roles: ["ADMIN"],
+      target: undefined,
     },
     {
       name: "Laporan & Laci Wali",
@@ -224,6 +228,7 @@ export default function DashboardLayout({
       icon: Calendar,
       roles: ["ADMIN", "KEPALA_SEKOLAH"],
       guruCheck: (guru: any) => guru?.isBk || !!guru?.idKelasWali,
+      target: undefined,
     },
     {
       name: "Konseling & EWS BK",
@@ -231,20 +236,14 @@ export default function DashboardLayout({
       icon: ShieldAlert,
       roles: ["ADMIN"],
       guruCheck: (guru: any) => guru?.isBk,
-    },
-    {
-      name: "TV Display QR",
-      path: "/display-qr",
-      icon: Tv,
-      roles: ["ADMIN", "KEPALA_SEKOLAH"],
-      guruCheck: (guru: any) => true,
-      target: "_blank",
+      target: undefined,
     },
     {
       name: "Pengaturan Sistem",
       path: "/settings",
       icon: Settings,
       roles: ["ADMIN"],
+      target: undefined,
     },
   ];
 

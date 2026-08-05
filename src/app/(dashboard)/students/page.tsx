@@ -98,6 +98,7 @@ function StudentsPageContent() {
   const [formTanggalSelesai, setFormTanggalSelesai] = useState("");
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [printingCards, setPrintingCards] = useState(false);
+  const [printData, setPrintData] = useState<any[]>([]);
 
   const handlePrintCards = async (studentIds: number[]) => {
     if (studentIds.length === 0) {
@@ -114,20 +115,14 @@ function StudentsPageContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Gagal mendapatkan data QR.");
 
-      const { pdf } = await import("@react-pdf/renderer");
-      const KartuSiswaPdfDocument = (await import("@/components/pdf/KartuSiswaPdf")).default;
-      const blob = await pdf(<KartuSiswaPdfDocument siswaList={data.data} />).toBlob();
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Kartu_Absensi_${studentIds.length > 1 ? "Massal" : data.data[0].nama}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success(`Kartu ${studentIds.length} siswa berhasil diunduh!`);
+      setPrintData(data.data);
+      toast.success("Mempersiapkan cetak kartu...");
+      setTimeout(() => {
+        window.print();
+      }, 500);
     } catch (err: any) {
       console.error("Gagal cetak kartu:", err);
-      toast.error(err.message || "Gagal membuat kartu PDF.");
+      toast.error(err.message || "Gagal memproses cetak.");
     } finally {
       setPrintingCards(false);
     }
@@ -454,16 +449,18 @@ function StudentsPageContent() {
         </div>
 
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <button
-            onClick={() => {
-              handlePrintCards(filteredStudents.map((s) => s.id));
-            }}
-            disabled={printingCards || filteredStudents.length === 0}
-            className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-600/10 cursor-pointer w-full md:w-auto justify-center disabled:opacity-50"
-          >
-            {printingCards ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
-            <span>Cetak Kartu {filterKelasId ? "Kelas" : "Semua"}</span>
-          </button>
+          {filterKelasId && (
+            <button
+              onClick={() => {
+                handlePrintCards(filteredStudents.map((s) => s.id));
+              }}
+              disabled={printingCards || filteredStudents.length === 0}
+              className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-600/10 cursor-pointer w-full md:w-auto justify-center disabled:opacity-50"
+            >
+              {printingCards ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+              <span>Cetak Kartu Kelas ({filteredStudents.length})</span>
+            </button>
+          )}
           <button
             onClick={() => {
               setShowImportModal(true);
@@ -987,6 +984,102 @@ function StudentsPageContent() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* PRINT AREA HTML FOR QR CARDS */}
+      {printData.length > 0 && (
+        <div id="print-section" className="hidden print:block print:absolute print:inset-0 print:bg-white print:z-50">
+          <style dangerouslySetInnerHTML={{__html: `
+            @media print {
+              body * {
+                visibility: hidden;
+              }
+              #print-section, #print-section * {
+                visibility: visible;
+              }
+              #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+                background-color: white !important;
+              }
+              @page {
+                size: 215mm 330mm; /* Ukuran Kertas F4 */
+                margin: 10mm;
+              }
+              .print-page {
+                page-break-after: always;
+                display: block !important; /* Gunakan block + float/flex fallback */
+                width: 100%;
+                box-sizing: border-box;
+                height: 310mm;
+              }
+              .print-grid {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 5mm;
+                justify-content: flex-start;
+                align-content: flex-start;
+              }
+              .print-page:last-child {
+                page-break-after: avoid;
+              }
+              .card-container {
+                width: 85.6mm !important;
+                height: 54mm !important;
+                border: 2px solid #10b981 !important;
+                border-radius: 8px !important;
+                padding: 6px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+                background-color: white !important;
+              }
+            }
+          `}} />
+          <div>
+            {(() => {
+              const cardsPerPage = 10;
+              const pages = [];
+              for (let i = 0; i < printData.length; i += cardsPerPage) {
+                pages.push(printData.slice(i, i + cardsPerPage));
+              }
+              return pages.map((pageCards, pageIdx) => (
+                <div key={pageIdx} className="print-page">
+                  <div className="print-grid">
+                    {pageCards.map((s, idx) => (
+                      <div key={idx} className="card-container">
+                        {/* Header Kartu */}
+                        <div className="flex items-center pb-1 border-b border-emerald-500/30 gap-1.5 w-full shrink-0">
+                          <img src="/logo.webp" alt="Logo" className="w-[6mm] h-[6mm] object-contain shrink-0" />
+                          <span className="text-[7.5px] font-black text-emerald-700 uppercase tracking-tight leading-none">SMK AR-RAHMA MANDIRI INDONESIA</span>
+                        </div>
+
+                        {/* Konten Kartu */}
+                        <div className="flex flex-row items-center flex-grow pt-1.5 w-full min-h-0">
+                          <div className="w-[28mm] h-[28mm] mr-3 shrink-0 flex items-center justify-center border border-zinc-200 rounded-lg p-1 bg-white">
+                            <img src={s.qrDataUrl} alt="QR Code" className="w-full h-full object-contain" />
+                          </div>
+                          <div className="flex-grow flex flex-col justify-center min-w-0 text-left">
+                            <span className="text-[10px] font-black text-zinc-900 truncate block leading-tight">{s.nama}</span>
+                            <span className="text-[5.5px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5 block">NISN</span>
+                            <span className="text-[7.5px] font-bold text-zinc-700 font-mono block leading-none">{s.nisn}</span>
+                            <span className="text-[5.5px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5 block">Kelas</span>
+                            <span className="text-[7.5px] font-bold text-zinc-700 block leading-none">{s.kelas}</span>
+                            <span className="text-[4.5px] text-zinc-400 font-semibold mt-1 block">Kartu QR Absensi - Statis & Resmi</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       )}

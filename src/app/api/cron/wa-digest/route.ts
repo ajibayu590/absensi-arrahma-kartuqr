@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
       const alpha = kehadiran.filter(x => x.status === "ALPHA").length;
       const belumAbsen = Math.max(0, totalStudentsCount - (hadir + terlambat + sakit + izin + alpha));
 
-      const formattedDate = wibDate.toLocaleDateString("id-ID", {
+      const formattedDate = now.toLocaleDateString("id-ID", {
         weekday: "long",
         day: "numeric",
         month: "long",

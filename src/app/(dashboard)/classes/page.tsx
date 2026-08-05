@@ -13,7 +13,8 @@ import {
   Loader2,
   Users,
   Search,
-  UploadCloud
+  UploadCloud,
+  Printer
 } from "lucide-react";
 
 interface Kelas {
@@ -83,6 +84,51 @@ export default function ClassesPage() {
   const [formTahunAjaran, setFormTahunAjaran] = useState("");
   const [formGuruId, setFormGuruId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [printingCards, setPrintingCards] = useState(false);
+
+  const handlePrintClassCards = async (classId: number, className: string) => {
+    setPrintingCards(true);
+    try {
+      // 1. Dapatkan daftar siswa di kelas ini dari API kelas
+      const resStudents = await fetch(`/api/admin/classes/${classId}/students`);
+      const dataStudents = await resStudents.json();
+      if (!resStudents.ok) throw new Error(dataStudents.error || "Gagal mendapatkan daftar siswa.");
+
+      const students = dataStudents.students || [];
+      if (students.length === 0) {
+        toast.error(`Tidak ada siswa terdaftar di kelas ${className}.`);
+        return;
+      }
+
+      // 2. Kirim ke API qr-print
+      const studentIds = students.map((s: any) => s.id);
+      const resPrint = await fetch("/api/admin/students/qr-print", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: studentIds })
+      });
+      const dataPrint = await resPrint.json();
+      if (!resPrint.ok) throw new Error(dataPrint.error || "Gagal mendapatkan data QR.");
+
+      // 3. Generate PDF
+      const { pdf } = await import("@react-pdf/renderer");
+      const KartuSiswaPdfDocument = (await import("@/components/pdf/KartuSiswaPdf")).default;
+      const blob = await pdf(<KartuSiswaPdfDocument siswaList={dataPrint.data} />).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Kartu_Absensi_Kelas_${className}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Kartu ${students.length} siswa kelas ${className} berhasil diunduh!`);
+    } catch (err: any) {
+      console.error("Gagal cetak kartu kelas:", err);
+      toast.error(err.message || "Gagal membuat kartu PDF.");
+    } finally {
+      setPrintingCards(false);
+    }
+  };
 
   const fetchClassesData = async () => {
     setLoading(true);
@@ -356,8 +402,16 @@ export default function ClassesPage() {
                         <span>{k.jumlahSiswa}</span>
                       </button>
                     </td>
-                    <td className="p-4 text-center">
+                     <td className="p-4 text-center">
                       <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => handlePrintClassCards(k.id, k.nama)}
+                          disabled={printingCards}
+                          title="Cetak Kartu QR Satu Kelas"
+                          className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => openEditModal(k)}
                           className="p-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg cursor-pointer transition-colors"

@@ -99,43 +99,35 @@ function StudentsPageContent() {
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [printingCards, setPrintingCards] = useState(false);
 
-  const handlePrintCards = async (siswaList: { nisn: string; nama: string; namaKelas: string }[]) => {
-    if (siswaList.length === 0) {
-      toast.error("Tidak ada siswa untuk dicetak.");
+  const handlePrintCards = async (studentIds: number[]) => {
+    if (studentIds.length === 0) {
+      toast.error("Tidak ada siswa yang dipilih.");
       return;
     }
     setPrintingCards(true);
     try {
-      const { encryptToken } = await import("@/lib/token-helper");
-      const QRCode = (await import("qrcode")).default;
-
-      const cardData = await Promise.all(
-        siswaList.map(async (s) => {
-          const token = encryptToken({ type: "siswa_statis", nisn: s.nisn });
-          const qrDataUrl = await QRCode.toDataURL(token, {
-            width: 200,
-            margin: 1,
-            color: { dark: "#000000", light: "#ffffff" },
-            errorCorrectionLevel: "M"
-          });
-          return { nisn: s.nisn, nama: s.nama, kelas: s.namaKelas, qrDataUrl };
-        })
-      );
+      const res = await fetch("/api/admin/students/qr-print", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: studentIds })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal mendapatkan data QR.");
 
       const { pdf } = await import("@react-pdf/renderer");
       const KartuSiswaPdfDocument = (await import("@/components/pdf/KartuSiswaPdf")).default;
-      const blob = await pdf(<KartuSiswaPdfDocument siswaList={cardData} />).toBlob();
+      const blob = await pdf(<KartuSiswaPdfDocument siswaList={data.data} />).toBlob();
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Kartu_Absensi_${siswaList.length > 1 ? "Kelas" : siswaList[0].nama}.pdf`;
+      a.download = `Kartu_Absensi_${studentIds.length > 1 ? "Massal" : data.data[0].nama}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(`Kartu ${siswaList.length} siswa berhasil diunduh!`);
+      toast.success(`Kartu ${studentIds.length} siswa berhasil diunduh!`);
     } catch (err: any) {
       console.error("Gagal cetak kartu:", err);
-      toast.error("Gagal membuat kartu PDF.");
+      toast.error(err.message || "Gagal membuat kartu PDF.");
     } finally {
       setPrintingCards(false);
     }
@@ -464,10 +456,7 @@ function StudentsPageContent() {
         <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button
             onClick={() => {
-              const targetStudents = filterKelasId
-                ? filteredStudents
-                : filteredStudents;
-              handlePrintCards(targetStudents.map((s) => ({ nisn: s.nisn, nama: s.nama, namaKelas: s.namaKelas })));
+              handlePrintCards(filteredStudents.map((s) => s.id));
             }}
             disabled={printingCards || filteredStudents.length === 0}
             className="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-600/10 cursor-pointer w-full md:w-auto justify-center disabled:opacity-50"
@@ -622,7 +611,7 @@ function StudentsPageContent() {
                           <Key className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handlePrintCards([{ nisn: s.nisn, nama: s.nama, namaKelas: s.namaKelas }])}
+                          onClick={() => handlePrintCards([s.id])}
                           title="Cetak Kartu QR Siswa"
                           disabled={printingCards}
                           className="p-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
@@ -800,6 +789,14 @@ function StudentsPageContent() {
             </span>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => handlePrintCards(selectedStudentIds)}
+              disabled={printingCards}
+              className="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              {printingCards ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
+              <span>Cetak Kartu ({selectedStudentIds.length})</span>
+            </button>
             <button
               onClick={() => {
                 setBulkMagangVal(false);

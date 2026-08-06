@@ -1,16 +1,18 @@
 import crypto from "crypto";
 
 const ALGORITHM = "aes-256-cbc";
-if (!process.env.JWT_SECRET) {
-  throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing!");
-}
-// Derive a 32-byte key from our JWT_SECRET
-const SECRET_KEY = crypto
-  .createHash("sha256")
-  .update(process.env.JWT_SECRET)
-  .digest();
-
 const IV_LENGTH = 16;
+
+function getSecretKey(): Buffer {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing!");
+    }
+    return crypto.createHash("sha256").update("dev-fallback-secret-do-not-use-in-production").digest();
+  }
+  return crypto.createHash("sha256").update(secret).digest();
+}
 
 export function encryptToken(data: any): string {
   let plainText = "";
@@ -24,7 +26,7 @@ export function encryptToken(data: any): string {
   }
 
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, iv);
+  const cipher = crypto.createCipheriv(ALGORITHM, getSecretKey(), iv);
   let encrypted = cipher.update(plainText, "utf8", "hex");
   encrypted += cipher.final("hex");
   // Gabungkan IV dan data terenkripsi dipisahkan titik dua
@@ -37,7 +39,7 @@ export function decryptToken(token: string): any {
     if (parts.length !== 2) return null;
     const iv = Buffer.from(parts[0], "hex");
     const encryptedText = Buffer.from(parts[1], "hex");
-    const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, iv);
+    const decipher = crypto.createDecipheriv(ALGORITHM, getSecretKey(), iv);
     let decrypted = decipher.update(encryptedText);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     const decryptedStr = decrypted.toString("utf8");

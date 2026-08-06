@@ -1,10 +1,16 @@
 import jwt from "jsonwebtoken";
 import { NextRequest } from "next/server";
 
-if (!process.env.JWT_SECRET) {
-  throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing!");
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing!");
+    }
+    return "dev-fallback-secret-do-not-use-in-production";
+  }
+  return secret;
 }
-const JWT_SECRET = process.env.JWT_SECRET;
 
 export interface TokenPayload {
   userId: number;
@@ -14,13 +20,12 @@ export interface TokenPayload {
 }
 
 export function signToken(payload: TokenPayload): string {
-  // Simpan token aktif selama 7 hari
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: "7d" });
 }
 
 export function verifyToken(token: string): TokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as TokenPayload;
+    return jwt.verify(token, getJwtSecret()) as TokenPayload;
   } catch (error) {
     return null;
   }
@@ -33,11 +38,9 @@ export async function verifyTokenEdge(token: string): Promise<TokenPayload | nul
 
     const [headerB64, payloadB64, signatureB64] = parts;
 
-    // Convert secret to Uint8Array
     const encoder = new TextEncoder();
-    const keyData = encoder.encode(JWT_SECRET);
+    const keyData = encoder.encode(getJwtSecret());
 
-    // Import key for HMAC
     const key = await crypto.subtle.importKey(
       "raw",
       keyData,
@@ -46,7 +49,6 @@ export async function verifyTokenEdge(token: string): Promise<TokenPayload | nul
       ["verify"]
     );
 
-    // Convert signature from base64url to Uint8Array
     let base64 = signatureB64.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) {
       base64 += '=';
@@ -57,7 +59,6 @@ export async function verifyTokenEdge(token: string): Promise<TokenPayload | nul
       sigBytes[i] = sigBinaryString.charCodeAt(i);
     }
 
-    // Verify signature
     const dataToVerify = encoder.encode(`${headerB64}.${payloadB64}`);
     const isValid = await crypto.subtle.verify(
       "HMAC",
@@ -68,7 +69,6 @@ export async function verifyTokenEdge(token: string): Promise<TokenPayload | nul
 
     if (!isValid) return null;
 
-    // Decode and parse payload
     let payloadBase64 = payloadB64.replace(/-/g, '+').replace(/_/g, '/');
     while (payloadBase64.length % 4) {
       payloadBase64 += '=';
@@ -76,7 +76,6 @@ export async function verifyTokenEdge(token: string): Promise<TokenPayload | nul
     const payloadJson = atob(payloadBase64);
     const payload = JSON.parse(payloadJson);
 
-    // Check expiration (exp)
     if (payload.exp && Date.now() >= payload.exp * 1000) {
       return null;
     }

@@ -55,3 +55,6 @@ next-env.d.ts
 deploy.env
 .next.zip
 public.zip
+node_modules.zip
+package-lock.zip
+.env copy

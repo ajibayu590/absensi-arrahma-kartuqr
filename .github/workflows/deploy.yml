@@ -30,8 +30,15 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: npm run build
 
-      - name: Prune devDependencies
-        run: npm prune --production
+      - name: Prepare Standalone Assets
+        run: |
+          cp -r public .next/standalone/public
+          mkdir -p .next/standalone/.next
+          cp -r .next/static .next/standalone/.next/static
+          cp server.js .next/standalone/server.js
+          cp prisma/schema.prisma .next/standalone/prisma/schema.prisma
+          mkdir -p .next/standalone/prisma
+          cp prisma/schema.prisma .next/standalone/prisma/schema.prisma
 
       - name: Deploy to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -40,19 +47,4 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /absensi.smkami.sch.id/
-          local-dir: ./
-          exclude: |
-            **/.git**
-            **/.github**
-            **/docs/**
-            **/src/**
-            **/prisma/**
-            **/.env**
-            **/tsconfig.json
-            **/tailwind.config.*
-            **/postcss.config.*
-            **/.eslintrc*
-            **/.gitignore
-            **/README.md
-            **/AGENTS.md
-            **/date_audit_plan.md
+          local-dir: .next/standalone/

@@ -36,7 +36,6 @@ jobs:
           mkdir -p .next/standalone/.next
           cp -r .next/static .next/standalone/.next/static
           cp server.js .next/standalone/server.js
-          cp prisma/schema.prisma .next/standalone/prisma/schema.prisma
           mkdir -p .next/standalone/prisma
           cp prisma/schema.prisma .next/standalone/prisma/schema.prisma
 

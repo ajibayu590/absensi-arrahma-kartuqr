@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export DEBIAN_FRONTEND=noninteractive
+    - npm install
+    - npm rebuild
+    - npx prisma generate
+    - npx next build --webpack

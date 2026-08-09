@@ -58,3 +58,4 @@ public.zip
 node_modules.zip
 package-lock.zip
 .env copy
+node_modules.tar.gz

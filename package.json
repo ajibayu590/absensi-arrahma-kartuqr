@@ -7,9 +7,14 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "setup": "npx prisma generate && npx next build --webpack"
+    "setup": "npx prisma generate && npx next build --webpack",
+    "prisma:generate": "node generate-prisma.js",
+    "cpanel:setup": "npx prisma generate && next build --webpack",
+    "cpanel:start": "node server.js",
+    "cpanel": "node start.js"
   },
   "dependencies": {
+    "22": "^0.0.0",
     "@prisma/client": "^6.19.3",
     "@react-pdf/renderer": "^4.5.1",
     "axios": "^1.17.0",

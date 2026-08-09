@@ -3,7 +3,7 @@ const { parse } = require("url");
 const next = require("next");
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const hostname = "0.0.0.0"; // cPanel requires binding to all interfaces
 const port = process.env.PORT || 3000;
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();

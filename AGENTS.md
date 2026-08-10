@@ -62,6 +62,7 @@ If an agent discovers a bug, vulnerability, or issue during any task (audit, rev
 - Include: date, component/feature affected, problem description, solution applied, and status.
 - Update the status after execution (e.g., Selesai, Dalam Proses, Dibatalkan).
 - Mandatory: Always append new entries to the `🐛 LOG PERBAIKAN BUG & PERUBAHAN LAINNYA` table at the bottom of `docs/TASK.md`.
+- Mandatory: **Setelah perbaikan bug atau penambahan fitur baru, AI agent WAJIB menjalankan `/graphify --update` untuk memastikan grafik pengetahuan tetap sinkron dengan perubahan kode terkini.**
 
 ### 6. Next.js Warning
 This project uses **Next.js 16** which has breaking changes from earlier versions. APIs, conventions, and file structure may differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code.

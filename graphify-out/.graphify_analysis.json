@@ -1,0 +1,664 @@
+{
+  "communities": {
+    "0": [
+      "src_app_api_admin_backup_db_route",
+      "src_app_api_admin_backup_db_route_escapesql",
+      "src_app_api_admin_backup_db_route_formatval",
+      "src_app_api_admin_backup_db_route_get",
+      "src_app_api_admin_classes_id_students_route",
+      "src_app_api_admin_classes_id_students_route_get",
+      "src_app_api_admin_classes_import_route",
+      "src_app_api_admin_classes_import_route_post",
+      "src_app_api_admin_classes_route",
+      "src_app_api_admin_classes_route_delete",
+      "src_app_api_admin_classes_route_get",
+      "src_app_api_admin_classes_route_post",
+      "src_app_api_admin_classes_route_put",
+      "src_app_api_admin_holidays_route",
+      "src_app_api_admin_holidays_route_delete",
+      "src_app_api_admin_holidays_route_get",
+      "src_app_api_admin_holidays_route_post",
+      "src_app_api_admin_holidays_route_put",
+      "src_app_api_admin_lifecycle_route",
+      "src_app_api_admin_lifecycle_route_post",
+      "src_app_api_admin_picket_schedules_route",
+      "src_app_api_admin_picket_schedules_route_delete",
+      "src_app_api_admin_picket_schedules_route_get",
+      "src_app_api_admin_picket_schedules_route_post",
+      "src_app_api_admin_settings_route",
+      "src_app_api_admin_settings_route_delete",
+      "src_app_api_admin_settings_route_get",
+      "src_app_api_admin_settings_route_put",
+      "src_app_api_admin_students_bulk_internship_route",
+      "src_app_api_admin_students_bulk_internship_route_put",
+      "src_app_api_admin_students_import_route",
+      "src_app_api_admin_students_import_route_post",
+      "src_app_api_admin_students_route",
+      "src_app_api_admin_students_route_cleanwaphone",
+      "src_app_api_admin_students_route_delete",
+      "src_app_api_admin_students_route_get",
+      "src_app_api_admin_students_route_post",
+      "src_app_api_admin_students_route_put",
+      "src_app_api_admin_users_import_route",
+      "src_app_api_admin_users_import_route_post",
+      "src_app_api_admin_users_route",
+      "src_app_api_admin_users_route_delete",
+      "src_app_api_admin_users_route_get",
+      "src_app_api_admin_users_route_post",
+      "src_app_api_admin_users_route_put",
+      "src_app_api_attendance_auto_alpha_route",
+      "src_app_api_attendance_auto_alpha_route_post",
+      "src_app_api_attendance_piket_students_route",
+      "src_app_api_attendance_piket_students_route_get",
+      "src_app_api_auth_change_password_route",
+      "src_app_api_auth_change_password_route_post",
+      "src_app_api_auth_login_route",
+      "src_app_api_auth_login_route_post",
+      "src_app_api_auth_profile_route",
+      "src_app_api_auth_profile_route_get",
+      "src_app_api_bk_counseling_route",
+      "src_app_api_bk_counseling_route_post",
+      "src_app_api_bk_ews_route",
+      "src_app_api_bk_ews_route_get",
+      "src_app_api_dashboard_summary_route",
+      "src_app_api_dashboard_summary_route_get",
+      "src_app_api_picket_dispensations_route",
+      "src_app_api_picket_dispensations_route_get",
+      "src_app_api_picket_dispensations_route_put",
+      "src_app_api_reports_route",
+      "src_app_api_reports_route_get",
+      "src_lib_auth_helper",
+      "src_lib_auth_helper_getjwtsecret",
+      "src_lib_auth_helper_getuserfromrequest",
+      "src_lib_auth_helper_signtoken",
+      "src_lib_auth_helper_verifytoken",
+      "src_lib_auto_alpha",
+      "src_lib_auto_alpha_runautoalpha",
+      "src_lib_prisma",
+      "src_lib_prisma_prismaclientsingleton"
+    ],
+    "1": [
+      "22",
+      "axios",
+      "bcrypt",
+      "date_fns",
+      "dexie",
+      "html5_qrcode",
+      "jsonwebtoken",
+      "lucide_react",
+      "next",
+      "package_dependencies",
+      "package_dependencies_22",
+      "package_dependencies_axios",
+      "package_dependencies_bcrypt",
+      "package_dependencies_date_fns",
+      "package_dependencies_dexie",
+      "package_dependencies_html5_qrcode",
+      "package_dependencies_jsonwebtoken",
+      "package_dependencies_lucide_react",
+      "package_dependencies_next",
+      "package_dependencies_prisma",
+      "package_dependencies_prisma_client",
+      "package_dependencies_react_dom",
+      "package_dependencies_react_hot_toast",
+      "package_dependencies_react_pdf_renderer",
+      "package_dependencies_zustand",
+      "prisma",
+      "prisma_client",
+      "prisma_db_check",
+      "prisma_db_check_main",
+      "prisma_db_check_prisma",
+      "react_dom",
+      "react_hot_toast",
+      "react_pdf_renderer",
+      "zustand"
+    ],
+    "2": [
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_allowjs",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_esmoduleinterop",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_incremental",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_isolatedmodules",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_jsx",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_lib",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_module",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_moduleresolution",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_noemit",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_paths",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_plugins",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_resolvejsonmodule",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_skiplibcheck",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_strict",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions_target",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_exclude",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_include",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_json",
+      "ref_dom",
+      "ref_dom_iterable",
+      "ref_esnext",
+      "ref_mts",
+      "ref_next_dev_types_ts",
+      "ref_next_env_d_ts",
+      "ref_next_types_ts",
+      "ref_node_modules",
+      "ref_ts",
+      "ref_tsx"
+    ],
+    "3": [
+      "eslint",
+      "eslint_config_next",
+      "package_devdependencies",
+      "package_devdependencies_eslint",
+      "package_devdependencies_eslint_config_next",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_tailwindcss_postcss",
+      "package_devdependencies_tsx",
+      "package_devdependencies_types_bcrypt",
+      "package_devdependencies_types_jsonwebtoken",
+      "package_devdependencies_types_node",
+      "package_devdependencies_types_qrcode",
+      "package_devdependencies_types_react",
+      "package_devdependencies_types_react_dom",
+      "package_devdependencies_typescript",
+      "tailwindcss",
+      "tailwindcss_postcss",
+      "tsx",
+      "types_bcrypt",
+      "types_jsonwebtoken",
+      "types_node",
+      "types_qrcode",
+      "types_react",
+      "types_react_dom",
+      "typescript"
+    ],
+    "4": [
+      "package_dependencies_qrcode",
+      "qrcode",
+      "src_app_api_admin_students_qr_print_route",
+      "src_app_api_admin_students_qr_print_route_post",
+      "src_app_api_picket_schedules_today_route",
+      "src_app_api_picket_schedules_today_route_get",
+      "src_app_api_student_dashboard_route",
+      "src_app_api_student_dashboard_route_get",
+      "src_app_api_student_dispensation_route",
+      "src_app_api_student_dispensation_route_get",
+      "src_app_api_student_dispensation_route_post",
+      "src_app_api_student_qr_token_route",
+      "src_app_api_student_qr_token_route_get",
+      "src_app_api_token_qr_route",
+      "src_app_api_token_qr_route_get",
+      "src_lib_auth_helper_tokenpayload",
+      "src_lib_auth_helper_verifytokenedge",
+      "src_lib_token_helper",
+      "src_lib_token_helper_decrypttoken",
+      "src_lib_token_helper_encrypttoken",
+      "src_lib_token_helper_getsecretkey",
+      "src_middleware",
+      "src_middleware_config",
+      "src_middleware_middleware"
+    ],
+    "5": [
+      "src_app_api_admin_wa_status_route",
+      "src_app_api_admin_wa_status_route_get",
+      "src_app_api_admin_wa_status_route_post",
+      "src_app_api_attendance_bulk_sync_route",
+      "src_app_api_attendance_bulk_sync_route_offlinelog",
+      "src_app_api_attendance_bulk_sync_route_post",
+      "src_app_api_attendance_live_stream_route",
+      "src_app_api_attendance_live_stream_route_get",
+      "src_app_api_attendance_manual_route",
+      "src_app_api_attendance_manual_route_delete",
+      "src_app_api_attendance_manual_route_post",
+      "src_app_api_attendance_scan_route",
+      "src_app_api_attendance_scan_route_hitungjarakhaversine",
+      "src_app_api_attendance_scan_route_post",
+      "src_app_api_cron_wa_digest_route",
+      "src_app_api_cron_wa_digest_route_get",
+      "src_app_api_dashboard_broadcast_route",
+      "src_app_api_dashboard_broadcast_route_post",
+      "src_lib_sse",
+      "src_lib_sse_broadcastattendance",
+      "src_lib_sse_getsseclients",
+      "src_lib_whatsapp",
+      "src_lib_whatsapp_kirimwadenganantrean",
+      "src_lib_whatsapp_kirimwalangsung"
+    ],
+    "6": [
+      "package",
+      "package_name",
+      "package_prisma",
+      "package_prisma_seed",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_cpanel",
+      "package_scripts_cpanel_setup",
+      "package_scripts_cpanel_start",
+      "package_scripts_dev",
+      "package_scripts_lint",
+      "package_scripts_prisma_generate",
+      "package_scripts_setup",
+      "package_scripts_start",
+      "package_version"
+    ],
+    "7": [
+      "server",
+      "server_app",
+      "server_auto_alpha_hour",
+      "server_auto_alpha_interval_ms",
+      "server_auto_alpha_minute",
+      "server_createserver",
+      "server_handle",
+      "server_next",
+      "server_parse",
+      "server_schedulertick",
+      "server_triggerautoalpha"
+    ],
+    "8": [
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_background_color",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_description",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_display",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_icons",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_json",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_name",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_scope",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_short_name",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_start_url",
+      "mnt_save_project_absensi_absensi_smk_ar_rahma_public_manifest_theme_color"
+    ],
+    "9": [
+      "package_dependencies_xlsx",
+      "src_app_dashboard_reports_page",
+      "src_app_dashboard_reports_page_harilibur",
+      "src_app_dashboard_reports_page_kehadiran",
+      "src_app_dashboard_reports_page_kelas",
+      "src_app_dashboard_reports_page_rekappdfbutton",
+      "src_app_dashboard_reports_page_reportdata",
+      "src_app_dashboard_reports_page_reportspage",
+      "src_app_dashboard_reports_page_siswa",
+      "xlsx"
+    ],
+    "10": [
+      "src_app_dashboard_picket_schedules_page",
+      "src_app_dashboard_picket_schedules_page_hari_list",
+      "src_app_dashboard_picket_schedules_page_picketschedule",
+      "src_app_dashboard_picket_schedules_page_picketschedulespage",
+      "src_app_dashboard_picket_schedules_page_teacherdropdownitem",
+      "src_components_pdf_jadwalpiketpdf",
+      "src_components_pdf_jadwalpiketpdf_jadwalpiketpdfdata",
+      "src_components_pdf_jadwalpiketpdf_jadwalpiketpdfdocument",
+      "src_components_pdf_jadwalpiketpdf_jadwalpiketpdfdocumentprops",
+      "src_components_pdf_jadwalpiketpdf_styles"
+    ],
+    "11": [
+      "src_app_dashboard_scan_page",
+      "src_app_dashboard_scan_page_piketscanpage",
+      "src_app_dashboard_scan_page_recentlog",
+      "src_lib_db",
+      "src_lib_db_absensiofflinedatabase",
+      "src_lib_db_absensiofflinedatabase_constructor",
+      "src_lib_db_db",
+      "src_lib_db_kehadirantertunda",
+      "src_lib_db_localsiswa"
+    ],
+    "12": [
+      "src_components_pdf_rekapabsensipdf",
+      "src_components_pdf_rekapabsensipdf_pdfstyles",
+      "src_components_pdf_rekapabsensipdf_rekapabsensipdfdocument",
+      "src_components_pdf_rekapabsensipdf_rekapabsensipdfdocumentprops",
+      "src_components_pdf_rekapabsensipdf_siswapdfdata",
+      "src_components_pdf_rekappdfbutton",
+      "src_components_pdf_rekappdfbutton_rekappdfbutton",
+      "src_components_pdf_rekappdfbutton_rekappdfbuttonprops"
+    ],
+    "13": [
+      "package_dependencies_react",
+      "react",
+      "src_app_api_reports_student_card_route",
+      "src_app_api_reports_student_card_route_get",
+      "src_app_api_reports_student_card_route_studentcarddocument",
+      "src_app_api_reports_student_card_route_studentcardprops",
+      "src_app_api_reports_student_card_route_styles"
+    ],
+    "14": [
+      "src_components_pdf_sppdfbutton",
+      "src_components_pdf_sppdfbutton_sppdfbutton",
+      "src_components_pdf_sppdfbutton_sppdfbuttonprops",
+      "src_components_pdf_sppdfletter",
+      "src_components_pdf_sppdfletter_flaggedstudent",
+      "src_components_pdf_sppdfletter_sppdfletterdocument",
+      "src_components_pdf_sppdfletter_sppdfstyles"
+    ],
+    "15": [
+      "start",
+      "start_app",
+      "start_createserver",
+      "start_execsync",
+      "start_handle",
+      "start_next",
+      "start_parse"
+    ],
+    "16": [
+      "src_app_student_page",
+      "src_app_student_page_attendancelog",
+      "src_app_student_page_attendancestat",
+      "src_app_student_page_compressimage",
+      "src_app_student_page_studentpage",
+      "src_app_student_page_studentprofile"
+    ],
+    "17": [
+      "src_app_auth_login_page",
+      "src_app_auth_login_page_logincontent",
+      "src_app_auth_login_page_loginpage",
+      "src_lib_fingerprint",
+      "src_lib_fingerprint_getbrowserfingerprint"
+    ],
+    "18": [
+      "src_app_dashboard_bk_page",
+      "src_app_dashboard_bk_page_bkpage",
+      "src_app_dashboard_bk_page_flaggedstudent",
+      "src_app_dashboard_bk_page_logkonseling",
+      "src_app_dashboard_bk_page_sppdfbutton"
+    ],
+    "19": [
+      "src_app_dashboard_settings_page",
+      "src_app_dashboard_settings_page_kelas",
+      "src_app_dashboard_settings_page_settingitem",
+      "src_app_dashboard_settings_page_settingspage",
+      "src_app_dashboard_settings_page_wastatus"
+    ],
+    "20": [
+      "src_app_dashboard_students_page",
+      "src_app_dashboard_students_page_kelas",
+      "src_app_dashboard_students_page_siswa",
+      "src_app_dashboard_students_page_studentspage",
+      "src_app_dashboard_students_page_studentspagecontent"
+    ],
+    "21": [
+      "src_app_layout",
+      "src_app_layout_metadata",
+      "src_app_layout_plusjakartasans",
+      "src_app_layout_rootlayout",
+      "src_app_layout_window"
+    ],
+    "22": [
+      "src_app_dashboard_classes_page",
+      "src_app_dashboard_classes_page_classespage",
+      "src_app_dashboard_classes_page_guru",
+      "src_app_dashboard_classes_page_kelas"
+    ],
+    "23": [
+      "src_app_dashboard_page",
+      "src_app_dashboard_page_dashboardpage",
+      "src_app_dashboard_page_info",
+      "src_app_dashboard_page_summarydata"
+    ],
+    "24": [
+      "src_lib_feedback",
+      "src_lib_feedback_initaudiocontext",
+      "src_lib_feedback_playerrorfeedback",
+      "src_lib_feedback_playsuccessfeedback"
+    ],
+    "25": [
+      "prisma_seed",
+      "prisma_seed_main",
+      "prisma_seed_prisma"
+    ],
+    "26": [
+      "src_app_dashboard_holidays_page",
+      "src_app_dashboard_holidays_page_holiday",
+      "src_app_dashboard_holidays_page_holidayspage"
+    ],
+    "27": [
+      "src_app_dashboard_layout",
+      "src_app_dashboard_layout_dashboardlayout",
+      "src_app_dashboard_layout_userprofile"
+    ],
+    "28": [
+      "src_app_dashboard_teachers_page",
+      "src_app_dashboard_teachers_page_teacherspage",
+      "src_app_dashboard_teachers_page_useritem"
+    ],
+    "29": [
+      "src_app_display_qr_page",
+      "src_app_display_qr_page_attendancelog",
+      "src_app_display_qr_page_displayqrpage"
+    ],
+    "30": [
+      "deploy_cpanel",
+      "deploy_cpanel_sh__entry"
+    ],
+    "31": [
+      "eslint_config",
+      "eslint_config_eslintconfig"
+    ],
+    "32": [
+      "generate_prisma",
+      "generate_prisma_execsync"
+    ],
+    "33": [
+      "next_config",
+      "next_config_nextconfig"
+    ],
+    "34": [
+      "postcss_config",
+      "postcss_config_config"
+    ],
+    "35": [
+      "public_sw",
+      "public_sw_assets_to_precache"
+    ],
+    "36": [
+      "src_app_api_auth_logout_route",
+      "src_app_api_auth_logout_route_post"
+    ],
+    "37": [
+      "src_app_api_settings_geofencing_route",
+      "src_app_api_settings_geofencing_route_get"
+    ],
+    "38": [
+      "src_app_auth_change_password_page",
+      "src_app_auth_change_password_page_changepasswordpage"
+    ],
+    "39": [
+      "src_app_auth_layout",
+      "src_app_auth_layout_authlayout"
+    ],
+    "40": [
+      "ecosystem_config"
+    ],
+    "41": [
+      "public_service_worker"
+    ]
+  },
+  "cohesion": {
+    "0": 0.06198198198198198,
+    "1": 0.058823529411764705,
+    "2": 0.06896551724137931,
+    "3": 0.08,
+    "4": 0.11956521739130435,
+    "5": 0.15579710144927536,
+    "6": 0.125,
+    "7": 0.2,
+    "8": 0.2,
+    "9": 0.2,
+    "10": 0.2222222222222222,
+    "11": 0.3055555555555556,
+    "12": 0.25,
+    "13": 0.3333333333333333,
+    "14": 0.2857142857142857,
+    "15": 0.2857142857142857,
+    "16": 0.4,
+    "17": 0.6,
+    "18": 0.4,
+    "19": 0.4,
+    "20": 0.4,
+    "21": 0.4,
+    "22": 0.5,
+    "23": 0.5,
+    "24": 0.5,
+    "25": 0.6666666666666666,
+    "26": 0.6666666666666666,
+    "27": 0.6666666666666666,
+    "28": 0.6666666666666666,
+    "29": 0.6666666666666666,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0,
+    "40": 1.0,
+    "41": 1.0
+  },
+  "gods": [
+    {
+      "id": "src_lib_auth_helper_getuserfromrequest",
+      "label": "getUserFromRequest()",
+      "degree": 77
+    },
+    {
+      "id": "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_compileroptions",
+      "label": "compilerOptions",
+      "degree": 16
+    },
+    {
+      "id": "src_lib_whatsapp_kirimwadenganantrean",
+      "label": "kirimWaDenganAntrean()",
+      "degree": 12
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 10
+    },
+    {
+      "id": "src_lib_auth_helper_tokenpayload",
+      "label": "TokenPayload",
+      "degree": 9
+    },
+    {
+      "id": "src_lib_auto_alpha_runautoalpha",
+      "label": "runAutoAlpha()",
+      "degree": 8
+    },
+    {
+      "id": "src_lib_token_helper_encrypttoken",
+      "label": "encryptToken()",
+      "degree": 8
+    },
+    {
+      "id": "mnt_save_project_absensi_absensi_smk_ar_rahma_tsconfig_include",
+      "label": "include",
+      "degree": 7
+    },
+    {
+      "id": "package_dependencies_xlsx",
+      "label": "xlsx",
+      "degree": 6
+    },
+    {
+      "id": "src_lib_whatsapp_kirimwalangsung",
+      "label": "kirimWaLangsung()",
+      "degree": 6
+    }
+  ],
+  "surprises": [
+    {
+      "source": "POST()",
+      "target": "xlsx",
+      "source_files": [
+        "src/app/api/admin/classes/import/route.ts",
+        "package.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "POST()",
+      "target": "xlsx",
+      "source_files": [
+        "src/app/api/admin/students/import/route.ts",
+        "package.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "POST()",
+      "target": "xlsx",
+      "source_files": [
+        "src/app/api/admin/users/import/route.ts",
+        "package.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "ReportsPage()",
+      "target": "xlsx",
+      "source_files": [
+        "src/app/(dashboard)/reports/page.tsx",
+        "package.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; peripheral node `ReportsPage()` unexpectedly reaches hub `xlsx`"
+    },
+    {
+      "source": "main()",
+      "target": "@prisma/client",
+      "source_files": [
+        "prisma/db-check.ts",
+        "package.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `dependencies` connect `Community 1` to `Community 9`, `Community 4`, `Community 13`, `Community 6`?",
+      "why": "High betweenness centrality (0.168) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `getUserFromRequest()` connect `Community 0` to `Community 13`, `Community 4`, `Community 5`?",
+      "why": "High betweenness centrality (0.165) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `xlsx` connect `Community 9` to `Community 0`, `Community 1`?",
+      "why": "High betweenness centrality (0.096) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `deploy-cpanel.sh script`, `eslintConfig`, `{ execSync }` to the rest of the system?",
+      "why": "142 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.06198198198198198 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.058823529411764705 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 2` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.06896551724137931 - nodes in this community are weakly interconnected."
+    }
+  ]
+}
